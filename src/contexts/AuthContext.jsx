@@ -39,15 +39,28 @@ export const AuthProvider = ({ children }) => {
         return signInWithEmailAndPassword(auth, email, password);
     };
 
-    const register = async (email, password, name, role) => {
+    const register = async (email, password, name, role, gender = "prefer-not-to-say") => {
         const res = await createUserWithEmailAndPassword(auth, email, password);
         const user = res.user;
-        // Create user document in Firestore with role
+
+        // Generate avatar based on gender
+        let avatarUrl;
+        if (gender === "male") {
+            avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}&gender=male`;
+        } else if (gender === "female") {
+            avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}&gender=female`;
+        } else {
+            avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`;
+        }
+
+        // Create user document in Firestore with role and avatar
         await setDoc(doc(db, "users", user.uid), {
             uid: user.uid,
             name,
             email,
             role, // 'teacher' or 'student'
+            gender,
+            avatarUrl,
             createdAt: new Date().toISOString()
         });
         return user;

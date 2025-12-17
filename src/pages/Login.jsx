@@ -218,9 +218,9 @@ const Login = () => {
                     </form>
 
                     <div className="mt-8 text-center pb-2">
-                        <button className="text-sm text-[#1A4D3E]/80 hover:text-[#0F2922] font-semibold transition-colors hover:underline">
+                        <Link to="/register" className="text-sm text-[#1A4D3E]/80 hover:text-[#0F2922] font-semibold transition-colors hover:underline">
                             Create Account
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>

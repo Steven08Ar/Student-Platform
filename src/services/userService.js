@@ -13,18 +13,55 @@ export const getAllUsers = async () => {
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-// Create a Student "Profile" (Note: This doesn't create an Auth account, just a DB record for the directory)
-// To fully create an account, the user would typically register, or an admin function would use Firebase Admin SDK
-export const createStudentProfile = async (studentData) => {
-    // We'll create a dummy ID or let Firestore generate one, but ideally this links to an Auth UID.
-    // Since we are just "creating a profile" for the teacher's view:
-    return await addDoc(collection(db, "users"), {
-        ...studentData,
-        role: 'student',
-        createdAt: new Date().toISOString()
-    });
+// Create a Real Student Account (Auth + DB) using Secondary App pattern
+import { initializeApp, deleteApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+
+// Need config again here or export it from firebase.js (better to just reconstruct or export)
+// Assuming standard Vite env vars are available
+const firebaseConfig = {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID
+};
+
+export const createStudentAuthAccount = async (studentData, password) => {
+    // 1. Initialize secondary app to avoid signing out the teacher
+    const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+    const secondaryAuth = getAuth(secondaryApp);
+
+    try {
+        // 2. Create Auth User
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, studentData.email, password);
+        const user = userCredential.user;
+
+        // 3. Update Profile (Name)
+        await updateProfile(user, {
+            displayName: studentData.name
+        });
+
+        // 4. Create Firestore Document (using main DB instance)
+        await setDoc(doc(db, "users", user.uid), {
+            ...studentData,
+            uid: user.uid,
+            role: 'student',
+            createdAt: new Date().toISOString()
+        });
+
+        return user;
+    } catch (error) {
+        throw error;
+    } finally {
+        // 5. Cleanup
+        await deleteApp(secondaryApp);
+    }
 };
 
 export const deleteUser = async (userId) => {
     await deleteDoc(doc(db, "users", userId));
+    // Note: Deleting from Auth requires Admin SDK or Cloud Functions, client cannot delete other users' Auth.
+    // We just remove access by deleting DB record (login check should fail or we rely on DB role).
 };

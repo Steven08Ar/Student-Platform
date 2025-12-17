@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search, Plus, Trash2, Mail, User, Loader2 } from "lucide-react";
-import { getUsersByRole, createStudentProfile, deleteUser } from "@/services/userService";
+import { getUsersByRole, createStudentAuthAccount, deleteUser } from "@/services/userService";
+
+
 import { useSearchParams } from "react-router-dom";
 
 const TeacherStudents = () => {
@@ -18,7 +20,7 @@ const TeacherStudents = () => {
 
     // Create Modal State
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [newStudent, setNewStudent] = useState({ name: "", email: "", grade: "" });
+    const [newStudent, setNewStudent] = useState({ name: "", email: "", grade: "", password: "" });
     const [creating, setCreating] = useState(false);
 
     useEffect(() => {
@@ -42,9 +44,13 @@ const TeacherStudents = () => {
         e.preventDefault();
         setCreating(true);
         try {
-            await createStudentProfile(newStudent);
+            await createStudentAuthAccount({
+                name: newStudent.name,
+                email: newStudent.email,
+                grade: newStudent.grade
+            }, newStudent.password);
             setShowCreateModal(false);
-            setNewStudent({ name: "", email: "", grade: "" });
+            setNewStudent({ name: "", email: "", grade: "", password: "" });
             fetchUsers();
             alert("Student profile created successfully!");
         } catch (error) {
@@ -180,6 +186,16 @@ const TeacherStudents = () => {
                                         placeholder="john@school.com"
                                         value={newStudent.email}
                                         onChange={e => setNewStudent({ ...newStudent, email: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Password</Label>
+                                    <Input
+                                        required
+                                        type="password"
+                                        placeholder="Min. 6 characters"
+                                        value={newStudent.password}
+                                        onChange={e => setNewStudent({ ...newStudent, password: e.target.value })}
                                     />
                                 </div>
                                 <div className="space-y-2">

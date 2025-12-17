@@ -1,0 +1,22 @@
+# Python 3.9 Sandbox - Production Ready
+FROM python:3.9-alpine
+
+# Metadata
+LABEL maintainer="Virtual Classroom"
+LABEL description="Isolated Python 3.9 execution environment"
+LABEL version="1.0"
+
+# Security: Create non-root user
+RUN addgroup -S pyuser && adduser -S pyuser -G pyuser
+
+# Security: Remove package manager to prevent installations
+RUN apk del apk-tools
+
+# Set working directory
+WORKDIR /app
+
+# Security: Switch to non-root user
+USER pyuser
+
+# Default command (will be overridden)
+CMD ["python3"]

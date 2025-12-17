@@ -1,0 +1,19 @@
+{
+    "name": "execution-server",
+    "version": "1.0.0",
+    "description": "Python 3.9 code execution server with Docker sandboxing",
+    "main": "executionServer.js",
+    "scripts": {
+        "start": "node executionServer.js",
+        "dev": "nodemon executionServer.js"
+    },
+    "dependencies": {
+        "express": "^4.18.2",
+        "cors": "^2.8.5",
+        "dockerode": "^4.0.0",
+        "express-rate-limit": "^7.1.5"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.1"
+    }
+}
