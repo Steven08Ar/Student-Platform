@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { PlusCircle, Loader2, Trash2, FileQuestion, Send, Edit, Settings, AlertTriangle } from "lucide-react";
+import { PlusCircle, Loader2, Trash2, FileQuestion, Send, Edit, Settings, AlertTriangle, ClipboardList } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 // Components
