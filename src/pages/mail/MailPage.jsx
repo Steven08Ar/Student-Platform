@@ -6,7 +6,7 @@ import { MailService } from "../../services/mailService";
 import { MessageList } from "./components/MessageList";
 import { ComposeModal } from "./components/ComposeModal";
 import { Button } from "@/components/ui/button";
-import { Mail, Send, Plus, Inbox } from "lucide-react";
+import { Mail, Send, Plus, Inbox, MessageSquare, Search } from "lucide-react"; // Added MessageSquare
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,10 @@ export function MailPage() {
     const [isComposeOpen, setIsComposeOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [userAvatars, setUserAvatars] = useState({});
+
+    // Retrieve user data for header pill
+    // Assuming 'user' context has name and photoURL or we fetch it.
+    // If user object structure is simple, we use it directly.
 
     useEffect(() => {
         // Subscribe to users collection to get real-time avatar updates
@@ -67,115 +71,162 @@ export function MailPage() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-8rem)] bg-background rounded-lg border shadow-sm overflow-hidden">
-            {/* Folders / Sidebar for Mail */}
-            <div className="w-64 border-r bg-muted/30 flex flex-col gap-2 p-3">
-                <Button
-                    onClick={() => setIsComposeOpen(true)}
-                    className="w-full justify-start gap-2 mb-4 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
-                    size="lg"
-                >
-                    <Plus className="h-5 w-5" />
-                    <span className="font-semibold">Redactar</span>
-                </Button>
-
-                <div className="space-y-1">
-                    <Button
-                        variant={view === 'inbox' ? "secondary" : "ghost"}
-                        className={cn("w-full justify-start", view === 'inbox' && "bg-white shadow-sm")}
-                        onClick={() => setView('inbox')}
-                    >
-                        <Inbox className="mr-2 h-4 w-4" />
-                        Bandeja de Entrada
-                    </Button>
-                    <Button
-                        variant={view === 'sent' ? "secondary" : "ghost"}
-                        className={cn("w-full justify-start", view === 'sent' && "bg-white shadow-sm")}
-                        onClick={() => setView('sent')}
-                    >
-                        <Send className="mr-2 h-4 w-4" />
-                        Enviados
-                    </Button>
+        <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
+            {/* Custom Header Area */}
+            <header className="flex items-center justify-between p-4 bg-white border-b border-gray-100 h-20 shrink-0">
+                {/* Left: Chat Icon */}
+                <div className="flex items-center gap-4">
+                    <div className="bg-white border-2 border-gray-100 rounded-xl p-3 shadow-sm text-gray-700">
+                        <MessageSquare className="h-6 w-6" />
+                    </div>
+                    <div className="hidden md:block">
+                        <h1 className="text-xl font-bold text-gray-800">Mensajes</h1>
+                        <p className="text-xs text-gray-400">Bandeja de entrada & comunicaciones</p>
+                    </div>
                 </div>
-            </div>
 
-            {/* Message List */}
-            <div className="w-96 border-r flex flex-col bg-background">
-                <div className="p-4 border-b flex justify-between items-center bg-muted/10">
-                    <h2 className="font-semibold text-lg">{view === 'inbox' ? 'Bandeja de Entrada' : 'Enviados'}</h2>
-                </div>
-                <div className="flex-1 overflow-y-auto">
-                    {loading ? (
-                        <div className="p-8 text-center text-muted-foreground flex flex-col items-center gap-2">
-                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                            <span>Cargando...</span>
-                        </div>
-                    ) : (
-                        <MessageList
-                            messages={messages}
-                            type={view}
-                            onSelectMessage={handleSelectMessage}
-                            selectedMessageId={selectedMessage?.id}
-                            userAvatars={userAvatars}
-                            emptyMessage={view === 'inbox' ? "No tienes mensajes nuevos" : "No has enviado mensajes"}
+                {/* Right: User Pill */}
+                <div className="flex items-center bg-gray-50 rounded-full pl-1 pr-4 py-1 border border-gray-100 gap-3">
+                    <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-200">
+                        <img
+                            src={user?.photoURL || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user?.displayName || user?.email}`}
+                            alt="User"
+                            className="h-full w-full object-cover"
                         />
+                    </div>
+                    <div className="text-right hidden sm:block">
+                        <p className="text-sm font-bold text-gray-800 leading-none">{user?.displayName || "Usuario"}</p>
+                        <p className="text-[10px] text-gray-400 leading-none mt-1">En línea</p>
+                    </div>
+                </div>
+            </header>
+
+            {/* Main Mail Content Layout */}
+            <div className="flex flex-1 overflow-hidden m-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                {/* Folders / Sidebar for Mail */}
+                <div className="w-16 md:w-64 border-r bg-gray-50/50 flex flex-col gap-2 p-3 shrink-0 transition-all">
+                    <Button
+                        onClick={() => setIsComposeOpen(true)}
+                        className="w-full justify-center md:justify-start gap-2 mb-4 bg-[#1A4D3E] text-white hover:bg-[#143D31] shadow-lg shadow-emerald-900/10 rounded-xl h-12"
+                        size="lg"
+                    >
+                        <Plus className="h-5 w-5" />
+                        <span className="hidden md:inline font-bold">Nuevo</span>
+                    </Button>
+
+                    <div className="space-y-1">
+                        <Button
+                            variant={view === 'inbox' ? "secondary" : "ghost"}
+                            className={cn("w-full justify-center md:justify-start h-12 md:h-10 rounded-xl", view === 'inbox' && "bg-white shadow text-[#1A4D3E] font-bold")}
+                            onClick={() => setView('inbox')}
+                        >
+                            <Inbox className="md:mr-2 h-5 w-5" />
+                            <span className="hidden md:inline">Entrada</span>
+                        </Button>
+                        <Button
+                            variant={view === 'sent' ? "secondary" : "ghost"}
+                            className={cn("w-full justify-center md:justify-start h-12 md:h-10 rounded-xl", view === 'sent' && "bg-white shadow text-[#1A4D3E] font-bold")}
+                            onClick={() => setView('sent')}
+                        >
+                            <Send className="md:mr-2 h-5 w-5" />
+                            <span className="hidden md:inline">Enviados</span>
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Message List */}
+                <div className="w-80 md:w-96 border-r flex flex-col bg-white shrink-0">
+                    <div className="p-4 border-b flex justify-between items-center bg-white h-16 sticky top-0 z-10">
+                        <h2 className="font-bold text-lg text-gray-800">{view === 'inbox' ? 'Recibidos' : 'Enviados'}</h2>
+                        <span className="text-xs font-bold bg-gray-100 text-gray-500 px-2 py-1 rounded-md">{messages.length}</span>
+                    </div>
+                    {/* Search Bar - Optional enhancement */}
+                    <div className="p-3 border-b bg-gray-50/30">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                            <input className="w-full pl-9 pr-4 py-2 text-sm bg-gray-100 border-none rounded-lg focus:ring-2 focus:ring-[#1A4D3E]/20 outline-none" placeholder="Buscar..." />
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto">
+                        {loading ? (
+                            <div className="p-8 text-center text-muted-foreground flex flex-col items-center gap-2">
+                                <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#1A4D3E] border-t-transparent"></div>
+                                <span>Cargando...</span>
+                            </div>
+                        ) : (
+                            <MessageList
+                                messages={messages}
+                                type={view}
+                                onSelectMessage={handleSelectMessage}
+                                selectedMessageId={selectedMessage?.id}
+                                userAvatars={userAvatars}
+                                emptyMessage={view === 'inbox' ? "Todo al día 🎉" : "Bandeja vacía"}
+                            />
+                        )}
+                    </div>
+                </div>
+
+                {/* Message Detail */}
+                <div className="flex-1 flex flex-col bg-gray-50/30 min-w-0">
+                    {selectedMessage ? (
+                        <>
+                            {/* Detail Header */}
+                            <div className="border-b px-8 py-6 bg-white shrink-0">
+                                <div className="flex justify-between items-start mb-6">
+                                    <h1 className="text-2xl font-extrabold leading-tight text-gray-900">{selectedMessage.subject}</h1>
+                                    <span className="text-xs font-bold text-gray-400 whitespace-nowrap bg-gray-100 px-3 py-1.5 rounded-full">
+                                        {selectedMessage.createdAt?.seconds &&
+                                            format(new Date(selectedMessage.createdAt.seconds * 1000), "PPP p", { locale: es })
+                                        }
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                    <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-white shadow-md bg-gray-100 shrink-0">
+                                        <img
+                                            src={(view === 'inbox' ? userAvatars[selectedMessage.senderId] : userAvatars[selectedMessage.receiverId]) || (view === 'inbox' ? selectedMessage.senderAvatar : selectedMessage.receiverAvatar) || `https://api.dicebear.com/9.x/avataaars/svg?seed=${view === 'inbox' ? selectedMessage.senderName : selectedMessage.receiverName}`}
+                                            alt="Avatar"
+                                            className="h-full w-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-base text-gray-900">
+                                            {view === 'inbox' ? selectedMessage.senderName : `Para: ${selectedMessage.receiverName}`}
+                                        </span>
+                                        <span className="text-xs font-medium text-gray-500">
+                                            {view === 'inbox' ? 'remitente@schoolastica.com' : 'destinatario@schoolastica.com'} {/* Mock */}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Detail Content */}
+                            <div className="flex-1 px-8 py-8 overflow-y-auto font-sans leading-relaxed text-base text-gray-800 bg-white">
+                                <div className="prose max-w-none">
+                                    <p className="whitespace-pre-wrap">{selectedMessage.content}</p>
+                                </div>
+                            </div>
+
+                            {/* Action Bar */}
+                            {view === 'inbox' && (
+                                <div className="p-6 border-t bg-white flex gap-4">
+                                    <Button onClick={() => setIsComposeOpen(true)} className="bg-black text-white hover:bg-gray-800 rounded-xl px-6 gap-2 h-12 shadow-lg">
+                                        <Send className="h-4 w-4" /> Responder
+                                    </Button>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                            <div className="h-32 w-32 rounded-3xl bg-gray-100 flex items-center justify-center mb-6 rotate-3 shadow-inner">
+                                <MessageSquare className="h-12 w-12 text-gray-300" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-800 mb-2">Selecciona un mensaje</h3>
+                            <p className="text-sm max-w-sx text-center px-8">Elige una conversación de la lista para ver los detalles.</p>
+                        </div>
                     )}
                 </div>
-            </div>
-
-            {/* Message Detail */}
-            <div className="flex-1 flex flex-col bg-background/50">
-                {selectedMessage ? (
-                    <>
-                        <div className="border-b p-6 bg-background">
-                            <div className="flex justify-between items-start mb-4">
-                                <h1 className="text-2xl font-bold leading-tight">{selectedMessage.subject}</h1>
-                                <span className="text-xs text-muted-foreground whitespace-nowrap bg-muted px-2 py-1 rounded">
-                                    {selectedMessage.createdAt?.seconds &&
-                                        format(new Date(selectedMessage.createdAt.seconds * 1000), "PPP p", { locale: es })
-                                    }
-                                </span>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full overflow-hidden border bg-gray-100 shrink-0">
-                                    <img
-                                        src={(view === 'inbox' ? userAvatars[selectedMessage.senderId] : userAvatars[selectedMessage.receiverId]) || (view === 'inbox' ? selectedMessage.senderAvatar : selectedMessage.receiverAvatar) || `https://api.dicebear.com/9.x/avataaars/svg?seed=${view === 'inbox' ? selectedMessage.senderName : selectedMessage.receiverName}`}
-                                        alt="Avatar"
-                                        className="h-full w-full object-cover"
-                                    />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="font-semibold text-sm">
-                                        {view === 'inbox' ? selectedMessage.senderName : `Para: ${selectedMessage.receiverName}`}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">
-                                        {view === 'inbox' ? 'remitente@schoolastica.com' : 'destinatario@schoolastica.com'} {/* Mock email if not available */}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex-1 p-8 overflow-y-auto font-sans leading-relaxed text-base">
-                            <div className="prose dark:prose-invert max-w-none">
-                                <p className="whitespace-pre-wrap">{selectedMessage.content}</p>
-                            </div>
-                        </div>
-                        {view === 'inbox' && (
-                            <div className="p-4 border-t bg-muted/10">
-                                <Button variant="outline" onClick={() => setIsComposeOpen(true)} className="gap-2">
-                                    <Send className="h-4 w-4" /> Responder
-                                </Button>
-                            </div>
-                        )}
-                    </>
-                ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-muted-foreground/50">
-                        <div className="h-24 w-24 rounded-full bg-muted/20 flex items-center justify-center mb-6">
-                            <Mail className="h-10 w-10" />
-                        </div>
-                        <p className="text-xl font-medium">Selecciona un mensaje para leerlo</p>
-                    </div>
-                )}
             </div>
 
             <ComposeModal
