@@ -145,7 +145,10 @@ const GradingView = () => {
                                             <div className="flex items-center gap-2">
                                                 <Input
                                                     type="number"
-                                                    className="w-20 text-right font-bold"
+                                                    className={`w-20 text-right font-bold transition-all duration-200 ${(manualScores[q.id] || 0) === maxPoints
+                                                            ? "bg-emerald-50 border-emerald-500 text-emerald-700 focus-visible:ring-emerald-500"
+                                                            : "bg-red-50 border-red-200 text-red-700 focus-visible:ring-red-500"
+                                                        }`}
                                                     value={manualScores[q.id] ?? 0}
                                                     onChange={e => setManualScores({ ...manualScores, [q.id]: parseInt(e.target.value) || 0 })}
                                                     max={maxPoints}
