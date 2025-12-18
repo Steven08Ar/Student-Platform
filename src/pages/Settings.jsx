@@ -57,7 +57,6 @@ export default function Settings() {
 
     return (
         <div className="flex-1 p-8 overflow-y-auto h-screen pb-20">
-            <h1 className="text-3xl font-bold mb-8 text-[#1A4D3E]">Configuración</h1>
 
             <div className="max-w-4xl mx-auto">
                 <Tabs defaultValue="profile" className="w-full">

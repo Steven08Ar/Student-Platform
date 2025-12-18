@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 import { cn } from "@/lib/utils";
@@ -7,6 +7,7 @@ import { Menu } from "lucide-react";
 
 const Layout = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const location = useLocation();
 
     return (
         <div className={cn(
@@ -28,8 +29,8 @@ const Layout = () => {
 
             {/* Main Content Column */}
             <div className="flex flex-col h-screen overflow-hidden bg-[#F2F6F5]"> {/* Pale Mint-Grey Background */}
-                {/* TopBar */}
-                <TopBar />
+                {/* TopBar - Hidden on Settings page */}
+                {location.pathname !== '/settings' && <TopBar />}
 
                 {/* Mobile Header */}
                 <header className="flex h-14 items-center gap-4 border-b bg-white px-6 lg:hidden">
