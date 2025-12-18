@@ -7,9 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Loader2, Save, RefreshCw, Bell, Lock, Paintbrush, User, Globe, Moon, Sun, Shield } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export default function Settings() {
     const { user, userData, updateProfileImage } = useAuth();
+    const { t, i18n } = useTranslation();
     const [saving, setSaving] = useState(false);
 
     // --- Profile State ---
@@ -19,6 +21,7 @@ export default function Settings() {
 
     // --- Appearance State (Synced with global dark mode if possible, but local for now) ---
     const [isDarkMode, setIsDarkMode] = useState(document.documentElement.classList.contains('dark'));
+    const [theme, setTheme] = useState('system');
 
     // --- Notifications State (Mock) ---
     const [emailNotifs, setEmailNotifs] = useState(true);
@@ -37,6 +40,10 @@ export default function Settings() {
             document.documentElement.classList.remove('dark');
         }
     }, [isDarkMode]);
+
+    const changeLanguage = (lng) => {
+        i18n.changeLanguage(lng);
+    };
 
     const handleRandomize = () => {
         const randomSeed = Math.random().toString(36).substring(7);
@@ -59,19 +66,19 @@ export default function Settings() {
         <div className="flex-1 p-8 overflow-y-auto h-screen pb-20">
 
             <div className="max-w-4xl mx-auto">
-                <Tabs defaultValue="profile" className="w-full">
+                <Tabs defaultValue="appearance" className="w-full">
                     <TabsList className="grid w-full grid-cols-4 mb-8 bg-gray-100/50 dark:bg-gray-800/50 p-1">
                         <TabsTrigger value="profile" className="gap-2">
                             <User className="h-4 w-4" /> Perfil
                         </TabsTrigger>
                         <TabsTrigger value="notifications" className="gap-2">
-                            <Bell className="h-4 w-4" /> Notificaciones
+                            <Bell className="h-4 w-4" /> Notifi...
                         </TabsTrigger>
                         <TabsTrigger value="privacy" className="gap-2">
                             <Shield className="h-4 w-4" /> Privacidad
                         </TabsTrigger>
-                        <TabsTrigger value="appearance" className="gap-2">
-                            <Paintbrush className="h-4 w-4" /> Apariencia
+                        <TabsTrigger value="appearance" className="gap-2 text-[#1A4D3E] data-[state=active]:text-[#1A4D3E]">
+                            <Paintbrush className="h-4 w-4" /> {t('settings.appearance')}
                         </TabsTrigger>
                     </TabsList>
 
@@ -196,28 +203,44 @@ export default function Settings() {
                     <TabsContent value="appearance">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Apariencia</CardTitle>
+                                <CardTitle>{t('settings.title')}</CardTitle>
                                 <CardDescription>Personaliza cómo se ve la aplicación.</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="flex items-center justify-between space-x-2">
+                            <CardContent className="space-y-8">
+                                <div className="bg-emerald-50/50 p-6 rounded-xl border border-emerald-100 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-white p-2 rounded-lg shadow-sm text-emerald-600">
+                                            <Globe className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900">{t('settings.language')}</h3>
+                                            <p className="text-xs text-gray-500">{t('settings.select_language')}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
+                                        <button
+                                            onClick={() => changeLanguage('es')}
+                                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-md transition-all duration-300 ${i18n.language === 'es' ? 'bg-[#1A4D3E] text-white shadow-md scale-[1.02]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+                                        >
+                                            <span className="text-lg">🇪🇸</span> {t('settings.spanish')}
+                                        </button>
+                                        <button
+                                            onClick={() => changeLanguage('en')}
+                                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-md transition-all duration-300 ${i18n.language === 'en' ? 'bg-[#1A4D3E] text-white shadow-md scale-[1.02]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+                                        >
+                                            <span className="text-lg">🇺🇸</span> {t('settings.english')}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between space-x-2 pt-4 border-t border-gray-100">
                                     <div className="space-y-0.5">
                                         <Label className="text-base">Modo Oscuro</Label>
                                         <p className="text-sm text-muted-foreground">Cambia entre tema claro y oscuro.</p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {isDarkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                                        {isDarkMode ? <Moon className="h-4 w-4 text-indigo-500" /> : <Sun className="h-4 w-4 text-amber-500" />}
                                         <Switch checked={isDarkMode} onCheckedChange={setIsDarkMode} />
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between space-x-2">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-base">Idioma</Label>
-                                        <p className="text-sm text-muted-foreground">Selecciona el idioma de la interfaz.</p>
-                                    </div>
-                                    <div className="flex items-center gap-2 border rounded-md p-1 px-3 bg-background">
-                                        <Globe className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm font-medium">Español (ES)</span>
                                     </div>
                                 </div>
                             </CardContent>

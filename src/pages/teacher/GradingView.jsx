@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Save, ArrowLeft, Check, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageTransition } from "../../components/layout/PageTransition";
+import { useTranslation } from "react-i18next"; // Added import
 
 // Helper since I didn't add getSubmissionById to service yet, or I can just use getDoc here for speed
 const getSubmissionById = async (id) => {
@@ -20,6 +22,7 @@ const getSubmissionById = async (id) => {
 
 const GradingView = () => {
     const { submissionId } = useParams();
+    const { t } = useTranslation();
     const navigate = useNavigate();
 
     const [submission, setSubmission] = useState(null);
@@ -130,16 +133,16 @@ const GradingView = () => {
     }
 
     return (
-        <div className="max-w-5xl mx-auto p-8 space-y-8">
+        <PageTransition className="max-w-5xl mx-auto p-8 space-y-8">
             <div className="flex items-center gap-4 border-b pb-6">
                 <Button variant="ghost" onClick={() => navigate(-1)}><ArrowLeft className="h-4 w-4" /></Button>
                 <div>
-                    <h1 className="text-2xl font-bold">Calificar: {exam.title}</h1>
-                    <p className="text-gray-500">Estudiante: {submission.studentName || submission.studentEmail} • Entregado: {new Date(submission.gradedAt).toLocaleDateString()}</p>
+                    <h1 className="text-2xl font-bold">{t('grading.grade_exam_title', { title: exam.title })}</h1>
+                    <p className="text-gray-500">{t('grading.student_info', { name: submission.studentName || submission.studentEmail, date: new Date(submission.gradedAt).toLocaleDateString() })}</p>
                 </div>
                 <div className="ml-auto flex items-center gap-4">
                     <div className="text-right">
-                        <p className="text-sm font-bold text-gray-400 uppercase">Nota Final</p>
+                        <p className="text-sm font-bold text-gray-400 uppercase">{t('grading.final_grade')}</p>
                         <p className="text-4xl font-black text-emerald-600">{totalScore}</p>
                     </div>
                 </div>
@@ -159,13 +162,13 @@ const GradingView = () => {
                                         <h3 className="font-bold text-lg"><span className="text-gray-400 mr-2">{idx + 1}.</span> {q.text || q.question}</h3>
 
                                         <div className="bg-gray-50 p-4 rounded-lg border">
-                                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">Respuesta del Estudiante:</p>
-                                            <p className="text-gray-900 font-medium">{studentAns || <span className="italic text-gray-400">Sin respuesta</span>}</p>
+                                            <p className="text-xs font-bold text-gray-400 uppercase mb-2">{t('grading.student_answer')}</p>
+                                            <p className="text-gray-900 font-medium">{studentAns || <span className="italic text-gray-400">{t('grading.no_answer')}</span>}</p>
                                         </div>
 
                                         {q.type === 'multiple_choice' && (
                                             <div className="text-sm text-gray-500">
-                                                Respuesta Correcta: <span className="font-bold text-emerald-600">{q.correctAnswer}</span>
+                                                {t('grading.correct_answer')} <span className="font-bold text-emerald-600">{q.correctAnswer}</span>
                                             </div>
                                         )}
                                     </div>
@@ -173,7 +176,7 @@ const GradingView = () => {
                                     {/* Grading Section */}
                                     <div className="w-full md:w-80 bg-gray-50 border-l p-6 space-y-4">
                                         <div className="flex items-center justify-between">
-                                            <Label>Puntaje (Max {effectiveMaxPoints})</Label>
+                                            <Label>{t('grading.score_max', { max: effectiveMaxPoints })}</Label>
                                             <div className="flex items-center gap-2">
                                                 <Input
                                                     type="number"
@@ -208,7 +211,7 @@ const GradingView = () => {
                                                         });
                                                     }}
                                                 >
-                                                    <Check className="h-4 w-4 mr-1" /> Correcto
+                                                    <Check className="h-4 w-4 mr-1" /> {t('grading.correct')}
                                                 </Button>
                                                 <Button
                                                     type="button"
@@ -220,16 +223,16 @@ const GradingView = () => {
                                                         setManualScores((prev) => ({ ...prev, [q.id]: 0 }));
                                                     }}
                                                 >
-                                                    <X className="h-4 w-4 mr-1" /> Incorrecto
+                                                    <X className="h-4 w-4 mr-1" /> {t('grading.incorrect')}
                                                 </Button>
                                             </div>
                                         )}
 
                                         <div className="space-y-2">
-                                            <Label>Retroalimentación</Label>
+                                            <Label>{t('grading.feedback')}</Label>
                                             <Textarea
                                                 className="bg-white min-h-[80px]"
-                                                placeholder="Comentarios para el estudiante..."
+                                                placeholder={t('grading.feedback_placeholder')}
                                                 value={feedbackNotes[q.id] || ""}
                                                 onChange={e => setFeedbackNotes({ ...feedbackNotes, [q.id]: e.target.value })}
                                             />
@@ -244,11 +247,11 @@ const GradingView = () => {
 
             <div className="sticky bottom-4 flex justify-end">
                 <Button size="lg" className="bg-black text-white shadow-xl hover:bg-gray-800" onClick={handleSave}>
-                    <Save className="mr-2 h-4 w-4" /> Guardar Calificaciones
+                    <Save className="mr-2 h-4 w-4" /> {t('grading.save_grades')}
                 </Button>
             </div>
-        </div>
+        </PageTransition>
     );
-}
+};
 
 export default GradingView;

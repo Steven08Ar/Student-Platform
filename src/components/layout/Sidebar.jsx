@@ -1,14 +1,17 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { LogOut, LayoutDashboard, Settings, ClipboardList, GraduationCap, Home, FileQuestion, Users, BookOpen, Video, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MailService } from "@/services/mailService";
-import { useEffect } from "react";
+import logo from "../../assets/icono-plataform.png";
+
+import { useTranslation } from 'react-i18next';
 
 const Sidebar = ({ isCollapsed }) => {
     const { userData, logout } = useAuth();
+    const { t } = useTranslation();
     const location = useLocation();
     const [showComingSoonModal, setShowComingSoonModal] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -23,22 +26,21 @@ const Sidebar = ({ isCollapsed }) => {
 
     // Determine links based on role
     const links = userData?.role === 'teacher' ? [
-        { name: "Dashboard", path: "/", icon: LayoutDashboard, view: null }, // Default view
-        { name: "Teachers", path: "/?view=teachers", icon: Users, view: 'teachers' }, // Mock view
-        { name: "Students", path: "/?view=students", icon: GraduationCap, view: 'students' },
-        { name: "Classes", path: "/?view=courses", icon: BookOpen, view: 'courses' },
-        { name: "Calificaciones", path: "/?view=grades", icon: ClipboardList, view: 'grades' },
-        { name: "Mensajes", path: "/mail", icon: Mail },
-        { name: "Clases Virtuales", path: "#", icon: Video, isComingSoon: true },
-        { name: "Examinations", path: "/?view=exams", icon: FileQuestion, view: 'exams' },
+        { name: t('sidebar.dashboard'), path: "/", icon: LayoutDashboard, view: null }, // Default view
+        { name: t('sidebar.grades'), path: "/?view=grades", icon: ClipboardList, view: 'grades' },
+        { name: t('sidebar.teachers'), path: "/?view=teachers", icon: Users, view: 'teachers' }, // Mock view
+        { name: t('sidebar.students'), path: "/?view=students", icon: GraduationCap, view: 'students' },
+        { name: t('sidebar.course_content'), path: "/?view=courses", icon: BookOpen, view: 'courses' },
+        { name: t('sidebar.messages'), path: "/mail", icon: Mail },
+        { name: t('sidebar.virtual_classes'), path: "#", icon: Video, isComingSoon: true },
+        { name: t('sidebar.exams'), path: "/?view=exams", icon: FileQuestion, view: 'exams' },
 
     ] : [
-        { name: "Dashboard", path: "/", icon: Home, view: null }, // Default view (no query param)
-        { name: "Course Sessions", path: "/?view=courses", icon: BookOpen, view: 'courses' },
-        { name: "Tasks", path: "/?view=tasks", icon: ClipboardList, view: 'tasks' },
-        { name: "Grades", path: "/?view=grades", icon: GraduationCap, view: 'grades' },
-        { name: "Mensajes", path: "/mail", icon: Mail },
-        { name: "Clases Virtuales", path: "#", icon: Video, isComingSoon: true },
+        { name: t('sidebar.dashboard'), path: "/", icon: Home, view: null }, // Default view (no query param)
+        { name: t('sidebar.tasks'), path: "/?view=tasks", icon: ClipboardList, view: 'tasks' },
+        { name: t('sidebar.grades'), path: "/?view=grades", icon: GraduationCap, view: 'grades' },
+        { name: t('sidebar.messages'), path: "/mail", icon: Mail },
+        { name: t('sidebar.virtual_classes'), path: "#", icon: Video, isComingSoon: true },
     ];
 
     // Check Active State
@@ -51,28 +53,28 @@ const Sidebar = ({ isCollapsed }) => {
             return false;
         }
 
-        // Exact match for view param
-        if (link.view && currentView === link.view) return true;
-
-        // Dashboard match (view is null and no view param in URL)
-        if (link.view === null && !currentView && location.pathname === '/') {
-            return true;
+        // 1. If we have a view param, simple strict equality on view
+        if (currentView) {
+            return link.view === currentView;
         }
 
-        // Exact match for path (e.g. /mail)
-        if (location.pathname === link.path) return true;
+        // 2. If NO view param (e.g. root '/' or '/mail')
+        // We only match if the path matches AND the link expects no view
+        // usage of 'split' handles cases where link.path has query params but we are just checking base path?
+        // Actually, simplest is strict path match if no query params in URL.
 
-        return false;
+        return location.pathname === link.path;
     };
 
     return (
         <div className="flex h-full w-full flex-col bg-[#1A4D3E] text-white transition-all duration-300">
             {/* Logo Area */}
             <div className={cn(
-                "flex h-20 items-center px-6 font-bold text-2xl tracking-tight text-white",
+                "flex h-20 items-center px-6 font-bold text-2xl tracking-tight text-white gap-3",
                 isCollapsed ? "justify-center" : "justify-start"
             )}>
-                {isCollapsed ? "Sc." : "Schoolastica."}
+                <img src={logo} alt="Alpy Logo" className="h-8 w-8 object-contain" />
+                {!isCollapsed && "Alpy"}
             </div>
 
             {/* Navigation */}

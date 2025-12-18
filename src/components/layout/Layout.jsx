@@ -34,7 +34,7 @@ const Layout = () => {
 
                 {/* Mobile Header */}
                 <header className="flex h-14 items-center gap-4 border-b bg-white px-6 lg:hidden">
-                    <span className="font-bold text-[#1A4D3E]">Schoolastica.</span>
+                    <span className="font-bold text-[#1A4D3E]">Alpy</span>
                 </header>
 
                 <main className={cn("flex-1 overflow-y-auto", location.pathname === '/mail' ? "p-0" : "p-6 md:p-8")}>

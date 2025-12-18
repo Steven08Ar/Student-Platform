@@ -3,19 +3,127 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { getClassById, getModulesByCourse, getLessonsByModule, getLessonProgress, updateLessonProgress, getAssignmentsByClass } from "@/services/classService";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, CheckCircle, Circle, PlayCircle, FileText, Lock, ClipboardList } from "lucide-react";
+import { Loader2, ArrowLeft, CheckCircle, Circle, PlayCircle, FileText, Lock, ClipboardList, BookOpen, Copy, Check, Target, Lightbulb, Car, ScrollText, XCircle, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageTransition } from "../../components/layout/PageTransition";
+import confetti from 'canvas-confetti';
+
+const CodeBlock = ({ language, children, ...props }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+    };
+
+    return (
+        <div className="my-8 rounded-xl overflow-hidden border border-gray-200/50 shadow-sm bg-[#121212]">
+            {/* MacOS Header */}
+            <div className="flex items-center justify-between px-4 py-3 bg-[#1a1a1a] border-b border-gray-800">
+                <div className="flex space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-[#fa5e57] hover:bg-[#d64a44] transition-colors" />
+                    <div className="w-3 h-3 rounded-full bg-[#febb2e] hover:bg-[#d89e24] transition-colors" />
+                    <div className="w-3 h-3 rounded-full bg-[#28c840] hover:bg-[#1fa133] transition-colors" />
+                </div>
+                <div className="text-[11px] uppercase font-bold text-gray-500 tracking-widest font-mono">
+                    {language || 'code'}
+                </div>
+                <button
+                    onClick={handleCopy}
+                    className="text-gray-500 hover:text-white transition-colors p-1.5 rounded-md hover:bg-white/5 active:scale-95"
+                    title="Copy code"
+                >
+                    {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                </button>
+            </div>
+            {/* Code Content */}
+            <div className="relative">
+                <SyntaxHighlighter
+                    style={vscDarkPlus}
+                    language={language}
+                    PreTag="div"
+                    {...props}
+                    customStyle={{
+                        margin: 0,
+                        padding: '1.5rem',
+                        borderRadius: 0,
+                        fontSize: '15px',
+                        lineHeight: '1.6',
+                        backgroundColor: '#121212'
+                    }}
+                >
+                    {String(children).replace(/\n$/, '')}
+                </SyntaxHighlighter>
+            </div>
+        </div>
+    );
+};
+
+// Helper for Titles with Icons
+const HeadingRenderer = ({ level, children, className, ...props }) => {
+    // Content is usually an array of strings or strictly a string in this context
+    const textContent = Array.isArray(children) ? children.join('') : String(children);
+
+    // Map of emojis to Lucide Icons
+    const iconMap = {
+        '🎯': { icon: Target, color: "text-red-500" },
+        '💡': { icon: Lightbulb, color: "text-amber-500" },
+        '🚗': { icon: Car, color: "text-blue-500" },
+        '📜': { icon: ScrollText, color: "text-amber-700" },
+        '✅': { icon: CheckCircle, color: "text-emerald-500" },
+        '❌': { icon: XCircle, color: "text-red-500" },
+        '⚡': { icon: Zap, color: "text-yellow-500" },
+    };
+
+    let IconToRender = null;
+    let cleanText = textContent;
+    let iconColor = "text-gray-400";
+
+    // Check if text starts with any emoji
+    for (const [emoji, { icon, color }] of Object.entries(iconMap)) {
+        if (textContent.includes(emoji)) {
+            IconToRender = icon;
+            cleanText = textContent.replace(emoji, '').trim();
+            iconColor = color;
+            break;
+        }
+    }
+
+    const Tag = `h${level}`;
+
+    // Base styles
+    const baseStyles = {
+        1: "text-3xl font-black text-gray-900 mt-8 mb-4 tracking-tight flex items-center gap-3",
+        2: "text-2xl font-bold text-gray-800 mt-8 mb-3 border-b pb-2 border-gray-100 flex items-center gap-2",
+        3: "text-lg font-bold text-gray-800 mt-6 mb-2 uppercase tracking-wide flex items-center gap-2"
+    };
+
+    return (
+        <Tag className={cn(baseStyles[level], className)} {...props}>
+            {IconToRender && <IconToRender className={cn("shrink-0", level === 1 ? "h-8 w-8" : "h-6 w-6", iconColor)} />}
+            <span>{cleanText}</span>
+        </Tag>
+    );
+};
+
+import { useTranslation } from "react-i18next"; // Added import
 
 const ClassLMSView = () => {
     const { classId } = useParams();
     const { userData } = useAuth();
+    const { t } = useTranslation();
     const navigate = useNavigate();
 
     // Data State
@@ -95,6 +203,15 @@ const ClassLMSView = () => {
     const handleMarkComplete = async () => {
         if (!activeLesson || !userData) return;
 
+        // Visual Celebration
+        confetti({
+            particleCount: 150,
+            spread: 80,
+            origin: { y: 0.7 },
+            colors: ['#1A4D3E', '#4ADE80', '#ffffff'],
+            disableForReducedMotion: true
+        });
+
         const newStatus = "completed";
         const newProgressMap = { ...progressMap, [activeLesson.id]: newStatus };
         setProgressMap(newProgressMap);
@@ -115,6 +232,24 @@ const ClassLMSView = () => {
         });
         return total === 0 ? 0 : Math.round((completed / total) * 100);
     }
+
+    // Animation Variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                when: "beforeChildren",
+                staggerChildren: 0.1
+            }
+        },
+        exit: { opacity: 0, transition: { duration: 0.2 } }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    };
 
     if (loading) {
         return (
@@ -147,114 +282,113 @@ const ClassLMSView = () => {
     }
 
     return (
-        <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">
+        <PageTransition className="flex h-screen bg-gray-50 overflow-hidden font-sans">
             {/* Sidebar (Modules & Lessons) */}
-            <aside className="w-80 bg-white border-r border-gray-200 flex flex-col h-full shrink-0">
-                <div className="p-4 border-b border-gray-100">
-                    <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="mb-2 -ml-2 text-gray-500">
+            <aside className="w-80 bg-white border-r border-gray-200 flex flex-col h-full shrink-0 z-10 shadow-sm">
+                <div className="p-4 border-b border-gray-100 bg-white sticky top-0 z-20">
+                    <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="mb-2 -ml-2 text-gray-500 hover:text-[#1A4D3E] hover:bg-emerald-50 transition-colors">
                         <ArrowLeft className="h-4 w-4 mr-1" />
-                        Volver al Dashboard
+                        {t('course.back_dashboard')}
                     </Button>
-                    <h2 className="font-bold text-lg leading-tight mb-2 truncate" title={classData?.title}>
+                    <h2 className="font-bold text-lg leading-tight mb-3 truncate text-gray-800" title={classData?.title}>
                         {classData?.title}
                     </h2>
-                    <div className="space-y-1">
-                        <div className="flex justify-between text-xs font-medium text-gray-500">
-                            <span>Progreso del Curso</span>
-                            <span>{calculateTotalProgress()}%</span>
+                    <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <span>{t('course.progress')}</span>
+                            <span className="text-[#1A4D3E]">{calculateTotalProgress()}%</span>
                         </div>
-                        <Progress value={calculateTotalProgress()} className="h-2" />
+                        <Progress value={calculateTotalProgress()} className="h-2.5 bg-gray-100 [&>div]:bg-[#1A4D3E]" />
+                    </div>
+
+                    <div className="flex bg-gray-100 p-1 rounded-xl mt-5">
+                        <button
+                            className={cn("flex-1 text-xs font-bold py-2 rounded-lg transition-all duration-300", sidebarMode === 'content' ? "bg-white shadow-sm text-[#1A4D3E] scale-[1.02]" : "text-gray-500 hover:text-gray-700")}
+                            onClick={() => setSidebarMode('content')}
+                        >
+                            {t('course.content')}
+                        </button>
+                        <button
+                            className={cn("flex-1 text-xs font-bold py-2 rounded-lg transition-all duration-300", sidebarMode === 'tasks' ? "bg-white shadow-sm text-[#1A4D3E] scale-[1.02]" : "text-gray-500 hover:text-gray-700")}
+                            onClick={() => setSidebarMode('tasks')}
+                        >
+                            {t('course.tasks_with_count', { count: classAssignments.length })}
+                        </button>
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {/* Toggle Content/Tasks */}
-                    <div className="flex gap-1 p-1 bg-gray-100 rounded-lg mb-4">
-                        <button
-                            onClick={() => setSidebarMode("content")}
-                            className={cn("flex-1 text-xs font-bold py-1.5 rounded-md transition-all", sidebarMode === "content" ? "bg-white shadow text-black" : "text-gray-500 hover:text-gray-900")}
-                        >
-                            Contenido
-                        </button>
-                        <button
-                            onClick={() => setSidebarMode("tasks")}
-                            className={cn("flex-1 text-xs font-bold py-1.5 rounded-md transition-all", sidebarMode === "tasks" ? "bg-white shadow text-black" : "text-gray-500 hover:text-gray-900")}
-                        >
-                            Tareas ({classAssignments.length})
-                        </button>
-                    </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                    {sidebarMode === 'content' ? (
+                        <div className="space-y-6">
+                            {modules.map((mod, modIndex) => (
+                                <motion.div
+                                    key={mod.id}
+                                    className="space-y-2"
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: modIndex * 0.1 }}
+                                >
+                                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">{mod.title}</h3>
+                                    <div className="space-y-1">
+                                        {(lessonsMap[mod.id] || []).map((lesson) => {
+                                            const isCompleted = progressMap[lesson.id] === 'completed';
+                                            const isActive = activeLesson?.id === lesson.id;
 
-                    {sidebarMode === "content" ? (
-                        modules.map((module, idx) => (
-                            <div key={module.id} className="space-y-2">
-                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-2">
-                                    Módulo {idx + 1}: {module.title}
-                                </h3>
-                                <div className="space-y-1">
-                                    {(lessonsMap[module.id] || []).map((lesson, lIdx) => {
-                                        const isCompleted = progressMap[lesson.id] === 'completed';
-                                        const isActive = activeLesson?.id === lesson.id;
-
-                                        return (
-                                            <button
-                                                key={lesson.id}
-                                                onClick={() => handleLessonSelect(lesson, module.id)}
-                                                className={cn(
-                                                    "w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors text-sm",
-                                                    isActive ? "bg-black text-white" : "hover:bg-gray-100 text-gray-700",
-                                                    isCompleted && !isActive && "text-gray-500"
-                                                )}
-                                            >
-                                                {isCompleted ? (
-                                                    <CheckCircle className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-emerald-500")} />
-                                                ) : (
-                                                    <Circle className={cn("h-4 w-4 shrink-0", isActive ? "text-white/50" : "text-gray-300")} />
-                                                )}
-
-                                                <div className="flex-1 line-clamp-2">
-                                                    {lesson.title}
-                                                </div>
-                                            </button>
-                                        )
-                                    })}
-                                </div>
-                            </div>
-                        ))
+                                            return (
+                                                <button
+                                                    key={lesson.id}
+                                                    onClick={() => handleLessonSelect(lesson, mod.id)}
+                                                    className={cn(
+                                                        "w-full flex items-start text-left p-3 rounded-xl text-sm transition-all duration-200 group relative overflow-hidden",
+                                                        isActive
+                                                            ? "bg-[#1A4D3E]/5 text-[#1A4D3E] font-semibold border-l-4 border-[#1A4D3E] shadow-sm"
+                                                            : "hover:bg-gray-50 text-gray-600 border-l-4 border-transparent"
+                                                    )}
+                                                >
+                                                    <div className={cn("mt-0.5 mr-3 shrink-0 transition-colors duration-300", isCompleted ? "text-emerald-500" : isActive ? "text-[#1A4D3E]" : "text-gray-300")}>
+                                                        {isCompleted ? <CheckCircle className="h-5 w-5 drop-shadow-sm" /> : <Circle className="h-5 w-5" />}
+                                                    </div>
+                                                    <div className="flex-1 z-10">
+                                                        <span className={cn("line-clamp-2 leading-snug", isCompleted && !isActive && "text-gray-400 line-through decoration-gray-300")}>{lesson.title}</span>
+                                                        <div className="flex items-center gap-3 mt-1.5 text-[10px] font-medium opacity-80">
+                                                            <span className="flex items-center"><PlayCircle className="h-3 w-3 mr-1" /> {lesson.duration || "10 min"}</span>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
                     ) : (
                         <div className="space-y-3">
                             {classAssignments.length === 0 ? (
-                                <p className="text-sm text-gray-400 text-center py-4">No hay tareas asignadas.</p>
+                                <div className="flex flex-col items-center justify-center py-10 text-gray-300">
+                                    <BookOpen className="h-10 w-10 mb-2 opacity-50" />
+                                    <p className="text-sm font-medium">{t('course.no_assignments')}</p>
+                                </div>
                             ) : (
-                                classAssignments.map(assign => {
-                                    const isActive = activeAssignment?.id === assign.id;
-                                    return (
-                                        <button
-                                            key={assign.id}
-                                            onClick={() => assign.type === 'exam' ? navigate(`/exam/${assign.examId}?classId=${classId}`) : handleAssignmentSelect(assign)}
-                                            className={cn(
-                                                "w-full bg-white border rounded-lg p-3 space-y-2 shadow-sm text-left transition-all",
-                                                isActive ? "ring-2 ring-black border-transparent" : "hover:border-gray-300"
-                                            )}
-                                        >
-                                            <div className="flex items-start justify-between">
-                                                <h4 className="text-sm font-bold text-gray-900">{assign.title}</h4>
-                                                {assign.type === 'exam' && <span className="text-[10px] bg-purple-100 text-purple-700 font-bold px-1.5 py-0.5 rounded">Examen</span>}
-                                            </div>
-                                            <p className="text-xs text-gray-500 line-clamp-2">{assign.description}</p>
-                                            <p className="text-[10px] text-gray-400">Vence: {assign.dueDate}</p>
-
-                                            {assign.type === 'exam' ? (
-                                                <div className="mt-2 w-full text-center py-1 bg-black text-white text-xs rounded">
-                                                    Presentar Examen
-                                                </div>
-                                            ) : (
-                                                <div className={cn("text-[10px] italic text-center border-t pt-1 mt-2", isActive ? "text-blue-600 font-medium" : "text-gray-400")}>
-                                                    {isActive ? "Viendo Detalles" : "Ver Tarea"}
-                                                </div>
-                                            )}
-                                        </button>
-                                    )
-                                })
+                                classAssignments.map(assign => (
+                                    <button
+                                        key={assign.id}
+                                        onClick={() => handleAssignmentSelect(assign)}
+                                        className={cn(
+                                            "w-full flex items-start text-left p-4 rounded-xl text-sm border transition-all duration-200 shadow-sm",
+                                            activeAssignment?.id === assign.id
+                                                ? "border-[#1A4D3E] bg-[#1A4D3E]/5 ring-1 ring-[#1A4D3E]/20"
+                                                : "border-gray-100 hover:border-[#1A4D3E]/30 bg-white hover:shadow-md hover:-translate-y-0.5"
+                                        )}
+                                    >
+                                        <div className="mr-3 mt-0.5 bg-white p-2 rounded-lg border border-gray-100 shadow-sm text-[#1A4D3E]">
+                                            <ClipboardList className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-gray-800">{assign.title}</div>
+                                            <div className="text-xs text-emerald-600 font-medium mt-1 bg-emerald-50 inline-block px-2 py-0.5 rounded">{t('course.due_date', { date: assign.dueDate })}</div>
+                                        </div>
+                                    </button>
+                                ))
                             )}
                         </div>
                     )}
@@ -262,217 +396,157 @@ const ClassLMSView = () => {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto flex flex-col">
-                {activeLesson ? (
-                    <div className="max-w-4xl mx-auto w-full p-8 md:p-12 space-y-8">
-                        {/* Video Section */}
-                        {activeLesson.videoUrl && (
-                            <div className="rounded-xl overflow-hidden shadow-2xl bg-black aspect-video relative">
-                                <iframe
-                                    className="w-full h-full"
-                                    src={activeLesson.videoUrl.replace("watch?v=", "embed/")}
-                                    title={activeLesson.title}
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                ></iframe>
-                            </div>
-                        )}
+            <main className="flex-1 overflow-y-auto flex flex-col relative w-full bg-white/50">
+                <AnimatePresence mode="wait">
+                    {activeLesson ? (
+                        <motion.div
+                            key={activeLesson.id}
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            className="max-w-4xl mx-auto w-full p-8 md:p-12 pb-32"
+                        >
+                            {/* Headers */}
+                            <motion.div variants={itemVariants} className="mb-8 border-b border-gray-100 pb-8">
+                                <div className="flex items-center text-xs font-bold text-[#1A4D3E] mb-3 uppercase tracking-wider">
+                                    <span className="bg-emerald-100/50 text-[#1A4D3E] px-2.5 py-1 rounded-md mr-3 border border-emerald-100/50">{t('course.lesson')}</span>
+                                    {modules.find(m => m.id === activeModuleId)?.title}
+                                </div>
+                                <h1 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 leading-tight tracking-tight">{activeLesson.title}</h1>
 
-                        {/* Header */}
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-6 border-b pb-4">{activeLesson.title}</h1>
-                            <div className="prose prose-slate max-w-none text-gray-700 leading-relaxed font-sans">
+                                {/* Video Placeholder */}
+                                {activeLesson.videoUrl && (
+                                    <motion.div
+                                        className="aspect-video bg-gray-900 rounded-2xl overflow-hidden shadow-2xl mb-8 relative group cursor-pointer ring-4 ring-gray-100"
+                                        whileHover={{ scale: 1.01 }}
+                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    >
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="w-20 h-20 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center group-hover:scale-110 group-hover:bg-white/20 transition-all duration-300 shadow-lg">
+                                                <PlayCircle className="h-10 w-10 text-white fill-white ml-1" />
+                                            </div>
+                                        </div>
+                                        <div className="absolute bottom-6 right-6 bg-black/60 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-white/10 font-mono">
+                                            {t('course.preview_video')}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </motion.div>
+
+                            {/* Markdown Content */}
+                            <motion.div variants={itemVariants} className="prose prose-emerald max-w-none">
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
-                                        h1: ({ node, ...props }) => (
-                                            <motion.h1
-                                                initial={{ opacity: 0, y: -20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                className="text-4xl font-extrabold mt-10 mb-6 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent"
-                                                {...props}
-                                            />
-                                        ),
-                                        h2: ({ node, ...props }) => (
-                                            <motion.div
-                                                initial={{ opacity: 0, x: -20 }}
-                                                whileInView={{ opacity: 1, x: 0 }}
-                                                viewport={{ once: true }}
-                                                className="flex items-center gap-3 mt-10 mb-4 pb-2 border-b border-gray-200"
-                                            >
-                                                <div className="h-8 w-1 bg-[#1A4D3E] rounded-full"></div>
-                                                <h2 className="text-2xl font-bold text-gray-800" {...props} />
-                                            </motion.div>
-                                        ),
-                                        h3: ({ node, ...props }) => (
-                                            <h3 className="text-xl font-bold mt-6 mb-3 text-[#1A4D3E]" {...props} />
-                                        ),
-                                        p: ({ node, ...props }) => (
-                                            <motion.p
-                                                initial={{ opacity: 0 }}
-                                                whileInView={{ opacity: 1 }}
-                                                viewport={{ once: true }}
-                                                className="text-lg text-gray-700 leading-relaxed mb-4"
-                                                {...props}
-                                            />
-                                        ),
-                                        ul: ({ node, ...props }) => <ul className="space-y-2 mt-4 mb-6" {...props} />,
-                                        ol: ({ node, ...props }) => <ol className="list-decimal pl-6 mt-4 mb-6 space-y-2" {...props} />,
-                                        li: ({ node, ...props }) => (
-                                            <motion.li
-                                                initial={{ opacity: 0, x: 10 }}
-                                                whileInView={{ opacity: 1, x: 0 }}
-                                                viewport={{ once: true }}
-                                                className="flex items-start gap-2"
-                                            >
-                                                <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[#1A4D3E] shrink-0" />
-                                                <span className="text-gray-700">{props.children}</span>
-                                            </motion.li>
-                                        ),
-                                        table: ({ node, ...props }) => (
-                                            <div className="overflow-x-auto my-8 rounded-xl border border-gray-200 shadow-sm">
-                                                <table className="w-full text-left border-collapse" {...props} />
-                                            </div>
-                                        ),
-                                        thead: ({ node, ...props }) => <thead className="bg-[#E8F5E9]" {...props} />,
-                                        th: ({ node, ...props }) => <th className="p-4 font-bold text-[#1A4D3E] border-b border-gray-200" {...props} />,
-                                        td: ({ node, ...props }) => <td className="p-4 border-b border-gray-100 text-gray-600" {...props} />,
-                                        code: ({ node, inline, className, children, ...props }) => {
-                                            const match = /language-(\w+)/.exec(className || '')
+                                        // Custom Headings (Smaller & Styled)
+                                        // Custom Headings (Smaller & Styled & Icons)
+                                        h1: (props) => <HeadingRenderer level={1} {...props} />,
+                                        h2: (props) => <HeadingRenderer level={2} {...props} />,
+                                        h3: (props) => <HeadingRenderer level={3} {...props} />,
+
+                                        // Custom Code Blocks (MacOS Style)
+                                        code({ node, inline, className, children, ...props }) {
+                                            const match = /language-(\w+)/.exec(className || '');
                                             return !inline && match ? (
-                                                <motion.div
-                                                    initial={{ opacity: 0, scale: 0.95 }}
-                                                    whileInView={{ opacity: 1, scale: 1 }}
-                                                    viewport={{ once: true }}
-                                                    className="rounded-xl overflow-hidden my-6 shadow-2xl border border-gray-800"
-                                                >
-                                                    <div className="bg-[#1e1e1e] px-4 py-2 flex items-center justify-between border-b border-gray-700">
-                                                        <div className="flex gap-1.5">
-                                                            <div className="w-3 h-3 rounded-full bg-red-500" />
-                                                            <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                                                            <div className="w-3 h-3 rounded-full bg-green-500" />
-                                                        </div>
-                                                        <span className="text-xs text-gray-400 font-mono font-bold uppercase tracking-wider">{match[1]}</span>
-                                                    </div>
-                                                    <SyntaxHighlighter
-                                                        {...props}
-                                                        children={String(children).replace(/\n$/, '')}
-                                                        style={vscDarkPlus}
-                                                        language={match[1]}
-                                                        PreTag="div"
-                                                        customStyle={{ margin: 0, borderRadius: 0, padding: '1.5rem', fontSize: '14px' }}
-                                                    />
-                                                </motion.div>
+                                                <CodeBlock language={match[1]} children={children} {...props} />
                                             ) : (
-                                                <code className="bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded font-mono text-sm font-bold border border-orange-100" {...props}>
+                                                <code className="bg-emerald-50 text-[#1A4D3E] px-1.5 py-0.5 rounded-md font-medium text-sm border border-emerald-100" {...props}>
                                                     {children}
                                                 </code>
-                                            )
+                                            );
                                         },
-                                        blockquote: ({ node, ...props }) => (
-                                            <motion.div
-                                                initial={{ opacity: 0, x: -20 }}
-                                                whileInView={{ opacity: 1, x: 0 }}
-                                                viewport={{ once: true }}
-                                                className="my-6 bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-xl shadow-sm relative overflow-hidden"
-                                            >
-                                                <div className="absolute top-0 right-0 p-4 opacity-10">
-                                                    <FileText className="h-16 w-16 text-blue-500" />
-                                                </div>
-                                                <div className="relative z-10 text-blue-900 font-medium italic">
-                                                    {props.children}
-                                                </div>
-                                            </motion.div>
+                                        // Override pre to remove prose background
+                                        pre: ({ children }) => <div className="not-prose">{children}</div>,
+
+                                        // Styled Tables
+                                        table: ({ children }) => (
+                                            <div className="overflow-x-auto my-8 rounded-xl shadow-sm border border-gray-100">
+                                                <table className="w-full text-sm text-left border-collapse">{children}</table>
+                                            </div>
                                         ),
+                                        thead: ({ children }) => <thead className="bg-emerald-50 text-[#1A4D3E] uppercase font-bold text-xs tracking-wider">{children}</thead>,
+                                        th: ({ children }) => <th className="px-6 py-4 font-semibold">{children}</th>,
+                                        tbody: ({ children }) => <tbody className="divide-y divide-gray-100 bg-white">{children}</tbody>,
+                                        tr: ({ children }) => <tr className="hover:bg-gray-50/50 transition-colors">{children}</tr>,
+                                        td: ({ children }) => <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{children}</td>,
+
+                                        // Blockquotes
+                                        blockquote: ({ node, ...props }) => (
+                                            <blockquote className="border-l-4 border-[#1A4D3E] bg-gradient-to-r from-emerald-50/50 to-transparent p-6 rounded-r-xl italic text-gray-700 my-6 not-italic shadow-sm" {...props} />
+                                        )
                                     }}
                                 >
                                     {activeLesson.content}
                                 </ReactMarkdown>
-                            </div>
-                        </div>
+                            </motion.div>
 
-                        {/* Action Footer */}
-                        <div className="border-t border-gray-200 pt-8 flex justify-between items-center sticky bottom-0 bg-gray-50/90 backdrop-blur pb-4">
-                            {/* Navigation Buttons */}
-                            <div className="flex gap-2">
+                            {/* Completion Footer */}
+                            {/* Completion Footer */}
+                            <motion.div variants={itemVariants} className="mt-10 flex justify-end sticky bottom-8 z-10 pointer-events-none px-8 md:px-0">
                                 <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                        const allLessons = Object.values(lessonsMap).flat();
-                                        const idx = allLessons.findIndex(l => l.id === activeLesson.id);
-                                        if (idx > 0) handleLessonSelect(allLessons[idx - 1], allLessons[idx - 1].moduleId);
-                                    }}
-                                    disabled={Object.values(lessonsMap).flat().findIndex(l => l.id === activeLesson.id) === 0}
+                                    size="lg"
+                                    className={cn(
+                                        "rounded-full px-8 h-12 text-base font-bold transition-all duration-300 shadow-2xl hover:shadow-xl pointer-events-auto",
+                                        progressMap[activeLesson.id] === 'completed'
+                                            ? "bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-50"
+                                            : "bg-[#1A4D3E] hover:bg-[#143D31] text-white hover:scale-105 active:scale-95 ring-4 ring-[#1A4D3E]/10"
+                                    )}
+                                    onClick={handleMarkComplete}
+                                    disabled={progressMap[activeLesson.id] === 'completed'}
                                 >
-                                    <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
+                                    {progressMap[activeLesson.id] === 'completed' ? (
+                                        <motion.div
+                                            initial={{ scale: 0.5, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            className="flex items-center"
+                                        >
+                                            <CheckCircle className="mr-2 h-5 w-5 fill-emerald-100" /> {t('course.completed')}
+                                        </motion.div>
+                                    ) : (
+                                        t('course.mark_complete')
+                                    )}
                                 </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                        const allLessons = Object.values(lessonsMap).flat();
-                                        const idx = allLessons.findIndex(l => l.id === activeLesson.id);
-                                        if (idx < allLessons.length - 1) handleLessonSelect(allLessons[idx + 1], allLessons[idx + 1].moduleId);
-                                    }}
-                                    disabled={Object.values(lessonsMap).flat().findIndex(l => l.id === activeLesson.id) === Object.values(lessonsMap).flat().length - 1}
-                                >
-                                    Siguiente <ArrowLeft className="ml-2 h-4 w-4 rotate-180" />
+                            </motion.div>
+                        </motion.div>
+                    ) : activeAssignment ? (
+                        <motion.div
+                            key={activeAssignment.id}
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            className="max-w-3xl mx-auto w-full p-8 md:p-12 h-full flex flex-col justify-center"
+                        >
+                            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-12 text-center space-y-8 relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-[#1A4D3E]" />
+                                <div className="w-24 h-24 bg-emerald-50 text-[#1A4D3E] rounded-3xl flex items-center justify-center mx-auto shadow-inner mb-6">
+                                    <FileText className="h-10 w-10" />
+                                </div>
+                                <div className="space-y-4">
+                                    <h2 className="text-3xl font-black text-gray-900 tracking-tight">{activeAssignment.title}</h2>
+                                    <p className="text-gray-500 text-lg leading-relaxed max-w-lg mx-auto">{activeAssignment.description}</p>
+                                </div>
+                                <div className="bg-gray-50 p-8 rounded-2xl border border-dashed border-gray-200 max-w-md mx-auto">
+                                    <Lock className="h-8 w-8 text-gray-300 mx-auto mb-3" />
+                                    <p className="text-gray-500 font-medium">{t('course.submission_coming_soon')}</p>
+                                    <p className="text-xs text-gray-400 mt-1">{t('course.upload_system_preparing')}</p>
+                                </div>
+                                <Button variant="outline" size="lg" onClick={() => setSidebarMode('content')} className="rounded-full border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-50">
+                                    {t('course.back_to_content')}
                                 </Button>
                             </div>
-
-                            {progressMap[activeLesson.id] === 'completed' ? (
-                                <Button disabled variant="outline" className="border-emerald-500 text-emerald-600 bg-emerald-50">
-                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                    Completado
-                                </Button>
-                            ) : (
-                                <Button onClick={handleMarkComplete} size="lg" className="px-8">
-                                    Marcar como Visto
-                                    <CheckCircle className="ml-2 h-4 w-4" />
-                                </Button>
-                            )}
+                        </motion.div>
+                    ) : (
+                        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 space-y-4">
+                            <BookOpen className="h-16 w-16 opacity-20" />
+                            <p className="font-medium text-lg opacity-60">{t('course.select_lesson_prompt')}</p>
                         </div>
-                    </div>
-                ) : activeAssignment ? (
-                    <div className="max-w-3xl mx-auto w-full p-8 md:p-12">
-                        <div className="mb-6">
-                            <Button variant="ghost" onClick={() => setActiveAssignment(null)} className="pl-0 text-gray-500 mb-4 hover:text-black">
-                                <ArrowLeft className="mr-2 h-4 w-4" /> Volver
-                            </Button>
-                            <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full mb-4">
-                                Tarea / Proyecto
-                            </span>
-                            <h1 className="text-4xl font-bold text-gray-900 mb-2">{activeAssignment.title}</h1>
-                            <p className="text-gray-500">Vence el: {activeAssignment.dueDate}</p>
-                        </div>
-
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
-                            <h3 className="font-bold text-lg mb-4 text-gray-800">Instrucciones</h3>
-                            <p className="text-gray-600 leading-relaxed whitespace-pre-line">{activeAssignment.description}</p>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-xl border border-dashed border-gray-300 p-8 text-center space-y-4">
-                            <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                                <ClipboardList className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-gray-900">Tu Entrega</h3>
-                                <p className="text-xs text-gray-500">Sube tu archivo o enlace aquí</p>
-                            </div>
-                            <Button className="w-full max-w-xs">
-                                Subir Archivo
-                            </Button>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-                        <PlayCircle className="h-16 w-16 mb-4 opacity-20" />
-                        <p>Selecciona una lección para comenzar</p>
-                    </div>
-                )}
+                    )}
+                </AnimatePresence>
             </main>
-        </div>
+        </PageTransition>
     );
 };
 
-export default ClassLMSView;
+export default ClassLMSView; /* force-refresh */

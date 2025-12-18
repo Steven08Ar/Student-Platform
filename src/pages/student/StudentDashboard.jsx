@@ -7,6 +7,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageTransition } from "../../components/layout/PageTransition";
+import { useTranslation } from "react-i18next";
 
 const StudentDashboard = () => {
     const { userData } = useAuth();
@@ -14,6 +16,9 @@ const StudentDashboard = () => {
     const [searchParams] = useSearchParams();
     // Get view from URL, default to 'home' (Dashboard)
     const currentView = searchParams.get("view") || "home";
+
+    // Hooks
+    const { t, i18n } = useTranslation();
 
     // State
     const [classes, setClasses] = useState([]);
@@ -153,14 +158,19 @@ const StudentDashboard = () => {
 
     const relatedClasses = classes.filter(c => c.id !== selectedClass?.id);
 
+    // Helper for date formatting
+    const getMonthName = (date) => date.toLocaleDateString(i18n.language, { month: 'long' });
+    const getDayName = (date) => date.toLocaleDateString(i18n.language, { weekday: 'short' }).toUpperCase().replace('.', '');
+
+
     // Tab Content Components
     const HomeView = () => (
         <div className="space-y-8 animate-in fade-in duration-300">
             {/* Header */}
             <section>
-                <h2 className="text-xl font-bold text-[#1A4D3E] mb-2">Mis Cursos</h2>
+                <h2 className="text-xl font-bold text-[#1A4D3E] mb-2">{t('dashboard.my_courses')}</h2>
                 <p className="text-gray-600 text-sm">
-                    {classes.length === 0 ? "No estás inscrito en ningún curso aún." : `Tienes ${classes.length} curso${classes.length !== 1 ? 's' : ''} disponible${classes.length !== 1 ? 's' : ''}`}
+                    {classes.length === 0 ? t('dashboard.no_courses_enrolled') : t('dashboard.courses_available_plural', { count: classes.length })}
                 </p>
             </section>
 
@@ -170,8 +180,8 @@ const StudentDashboard = () => {
                     <div className="mx-auto w-16 h-16 bg-[#E8F5E9] rounded-full flex items-center justify-center mb-4">
                         <GraduationCap className="h-8 w-8 text-[#1A4D3E]" />
                     </div>
-                    <h3 className="text-gray-900 font-bold text-lg mb-2">No hay cursos disponibles</h3>
-                    <p className="text-gray-500 text-sm">Contacta a tu profesor para inscribirte en un curso.</p>
+                    <h3 className="text-gray-900 font-bold text-lg mb-2">{t('dashboard.no_courses_available')}</h3>
+                    <p className="text-gray-500 text-sm">{t('dashboard.contact_teacher')}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -197,14 +207,14 @@ const StudentDashboard = () => {
                                     {cls.title}
                                 </h3>
                                 <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-                                    {cls.description || "Sin descripción disponible"}
+                                    {cls.description || t('dashboard.no_description')}
                                 </p>
 
                                 {/* Progress Section */}
                                 <div className="space-y-2 mb-4">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs text-gray-600 font-medium">
-                                            {progress > 0 ? "Progreso" : "Sin iniciar"}
+                                            {progress > 0 ? t('dashboard.progress') : t('dashboard.not_started')}
                                         </span>
                                         <span className="text-xs font-bold text-[#1A4D3E]">{progress}%</span>
                                     </div>
@@ -224,7 +234,7 @@ const StudentDashboard = () => {
                                         navigate(`/learn/${cls.id}`);
                                     }}
                                 >
-                                    {progress > 0 ? "Continuar Aprendiendo" : "Comenzar Curso"}
+                                    {progress > 0 ? t('dashboard.continue_learning') : t('dashboard.start_course')}
                                 </Button>
                             </div>
                         );
@@ -235,7 +245,7 @@ const StudentDashboard = () => {
     );
 
     const TasksView = () => {
-        const [calendarView, setCalendarView] = useState('weekly'); // 'daily', 'weekly', 'monthly'
+        const [calendarView, setCalendarView] = useState('monthly'); // 'daily', 'weekly', 'monthly'
 
         // Get current week dates
         const today = new Date();
@@ -262,17 +272,17 @@ const StudentDashboard = () => {
             }
         });
 
-        const dayNames = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
-        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        // Dynamically rotate day names for Monthly View Header
+        // We'll just generate them from a known week
+        const sampleWeek = weekDays; // already starts Sunday
 
         return (
             <div className="space-y-6 animate-in fade-in duration-300">
                 <header className="flex justify-between items-center">
                     <div>
-                        <h2 className="text-xl font-bold text-[#1A4D3E]">Calendario de Tareas</h2>
-                        <p className="text-gray-600 text-sm">
-                            {monthNames[today.getMonth()]} {today.getFullYear()}
+                        <h2 className="text-xl font-bold text-[#1A4D3E]">{t('dashboard.task_calendar')}</h2>
+                        <p className="text-gray-600 text-sm capitalize">
+                            {getMonthName(today)} {today.getFullYear()}
                         </p>
                     </div>
                 </header>
@@ -286,7 +296,7 @@ const StudentDashboard = () => {
                             : 'text-gray-600 hover:text-gray-900'
                             }`}
                     >
-                        Diario
+                        {t('dashboard.daily')}
                     </button>
                     <button
                         onClick={() => setCalendarView('weekly')}
@@ -295,7 +305,7 @@ const StudentDashboard = () => {
                             : 'text-gray-600 hover:text-gray-900'
                             }`}
                     >
-                        Semanal
+                        {t('dashboard.weekly')}
                     </button>
                     <button
                         onClick={() => setCalendarView('monthly')}
@@ -304,7 +314,7 @@ const StudentDashboard = () => {
                             : 'text-gray-600 hover:text-gray-900'
                             }`}
                     >
-                        Mensual
+                        {t('dashboard.monthly')}
                     </button>
                 </div>
 
@@ -313,10 +323,10 @@ const StudentDashboard = () => {
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                         <div className="bg-[#E8F5E9] p-4 border-b border-gray-200">
                             <div className="text-sm font-medium text-gray-600">
-                                {dayNames[today.getDay()]}
+                                {getDayName(today)}
                             </div>
                             <div className="text-2xl font-bold text-[#1A4D3E]">
-                                {today.getDate()} de {monthNames[today.getMonth()]}
+                                {today.getDate()} de {getMonthName(today)}
                             </div>
                         </div>
                         <div className="p-6 space-y-3 min-h-[400px]">
@@ -356,7 +366,7 @@ const StudentDashboard = () => {
                             })}
                             {!(assignmentsByDate[today.toISOString().split('T')[0]] || []).length && (
                                 <div className="text-center py-12 text-gray-400">
-                                    No hay tareas para hoy
+                                    {t('dashboard.no_tasks_today')}
                                 </div>
                             )}
                         </div>
@@ -367,9 +377,9 @@ const StudentDashboard = () => {
                 {calendarView === 'monthly' && (
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                         <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
-                            {dayNames.map((day, idx) => (
+                            {sampleWeek.map((day, idx) => (
                                 <div key={idx} className="p-3 text-center text-xs font-bold text-gray-600 border-r border-gray-100 last:border-r-0">
-                                    {day}
+                                    {getDayName(day)}
                                 </div>
                             ))}
                         </div>
@@ -380,8 +390,13 @@ const StudentDashboard = () => {
                                 const monthDays = Array.from({ length: daysInMonth }, (_, i) => {
                                     return new Date(today.getFullYear(), today.getMonth(), i + 1);
                                 });
+                                // Padding for start of month
+                                const startDay = startOfMonth.getDay();
+                                const padding = Array.from({ length: startDay }, (_, i) => null);
 
-                                return monthDays.map((date, idx) => {
+                                return [...padding, ...monthDays].map((date, idx) => {
+                                    if (!date) return <div key={`pad-${idx}`} className="bg-gray-50/30 border-r border-b border-gray-100"></div>;
+
                                     const dateKey = date.toISOString().split('T')[0];
                                     const dayAssignments = assignmentsByDate[dateKey] || [];
                                     const isToday = date.toDateString() === today.toDateString();
@@ -417,7 +432,7 @@ const StudentDashboard = () => {
                                                     );
                                                 })}
                                                 {dayAssignments.length > 2 && (
-                                                    <div className="text-[10px] text-gray-500">+{dayAssignments.length - 2} más</div>
+                                                    <div className="text-[10px] text-gray-500">{t('dashboard.more_tasks', { count: dayAssignments.length - 2 })}</div>
                                                 )}
                                             </div>
                                         </div>
@@ -442,7 +457,7 @@ const StudentDashboard = () => {
                                             }`}
                                     >
                                         <div className="text-xs font-medium text-gray-500 mb-1">
-                                            {dayNames[idx]}
+                                            {getDayName(date)}
                                         </div>
                                         <div className={`text-lg font-bold ${isToday ? 'text-[#1A4D3E]' : 'text-gray-700'
                                             }`}>
@@ -515,7 +530,7 @@ const StudentDashboard = () => {
                     {/* Pending Tasks */}
                     <div className="bg-gradient-to-br from-[#1A4D3E] to-[#143D31] p-6 rounded-xl text-white shadow-lg">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-sm font-bold opacity-90">Tareas Pendientes</h3>
+                            <h3 className="text-sm font-bold opacity-90">{t('dashboard.tasks')}</h3>
                             <ClipboardList className="h-5 w-5 opacity-75" />
                         </div>
                         <div className="text-3xl font-bold mb-4">
@@ -536,7 +551,7 @@ const StudentDashboard = () => {
                     {/* Upcoming Exams */}
                     <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-xl text-white shadow-lg">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-sm font-bold opacity-90">Exámenes Próximos</h3>
+                            <h3 className="text-sm font-bold opacity-90">{t('dashboard.upcoming_exams')}</h3>
                             <GraduationCap className="h-5 w-5 opacity-75" />
                         </div>
                         <div className="text-3xl font-bold mb-4">
@@ -549,7 +564,7 @@ const StudentDashboard = () => {
                                 onClick={() => navigate(`/exam/${exam.examId}?classId=${exam.classId}`)}
                             >
                                 <div className="text-xs font-medium truncate">{exam.title}</div>
-                                <div className="text-[10px] opacity-75">Vence: {exam.dueDate}</div>
+                                <div className="text-[10px] opacity-75">{t('course.due_date', { date: exam.dueDate })}</div>
                             </div>
                         ))}
                     </div>
@@ -557,12 +572,12 @@ const StudentDashboard = () => {
                     {/* Completed */}
                     <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 rounded-xl text-white shadow-lg">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-sm font-bold opacity-90">Completadas</h3>
+                            <h3 className="text-sm font-bold opacity-90">{t('dashboard.completed')}</h3>
                             <CheckCircle2 className="h-5 w-5 opacity-75" />
                         </div>
                         <div className="text-3xl font-bold mb-4">{submissions.length}</div>
                         <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg">
-                            <div className="text-xs opacity-90 mb-1">Tasa de Completitud</div>
+                            <div className="text-xs opacity-90 mb-1">{t('dashboard.completion_rate')}</div>
                             <div className="text-lg font-bold">
                                 {assignments.length > 0 ? Math.round((submissions.length / assignments.length) * 100) : 0}%
                             </div>
@@ -585,7 +600,7 @@ const StudentDashboard = () => {
         return (
             <div className="space-y-6 animate-in fade-in duration-300">
                 <header className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Calificaciones</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.grades_title')}</h2>
                 </header>
 
                 {submissions.length === 0 ? (
@@ -593,18 +608,18 @@ const StudentDashboard = () => {
                         <div className="mx-auto w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
                             <GraduationCap className="h-6 w-6 text-emerald-500" />
                         </div>
-                        <h3 className="text-gray-900 font-medium mb-1">Sin Registros</h3>
-                        <p className="text-gray-500 text-sm">Aún no se han publicado calificaciones para tus cursos.</p>
+                        <h3 className="text-gray-900 font-medium mb-1">{t('dashboard.no_records')}</h3>
+                        <p className="text-gray-500 text-sm">{t('dashboard.no_grades_published')}</p>
                     </div>
                 ) : (
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-gray-50 border-b">
                                 <tr>
-                                    <th className="px-6 py-4 font-bold text-gray-700">Actividad / Examen</th>
-                                    <th className="px-6 py-4 font-bold text-gray-700">Fecha</th>
-                                    <th className="px-6 py-4 font-bold text-gray-700 text-right">Calificación</th>
-                                    <th className="px-6 py-4 font-bold text-gray-700 text-center">Estado</th>
+                                    <th className="px-6 py-4 font-bold text-gray-700">{t('dashboard.activity')}</th>
+                                    <th className="px-6 py-4 font-bold text-gray-700">{t('dashboard.date')}</th>
+                                    <th className="px-6 py-4 font-bold text-gray-700 text-right">{t('dashboard.grade')}</th>
+                                    <th className="px-6 py-4 font-bold text-gray-700 text-center">{t('dashboard.status')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -621,11 +636,11 @@ const StudentDashboard = () => {
                                                     className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
                                                     onClick={() => navigate(`/exam/feedback/${sub.id}`)}
                                                 >
-                                                    Ver Retroalimentación
+                                                    {t('dashboard.view_feedback')}
                                                 </Button>
                                             ) : (
                                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                                    Pendiente
+                                                    {t('dashboard.pending')}
                                                 </span>
                                             )}
                                         </td>
@@ -639,17 +654,22 @@ const StudentDashboard = () => {
         );
     }
 
+
+    // ... existing imports
+
+    // ... inside StudentDashboard
+
     return (
         <div className="min-h-screen bg-[#F9FAFB] text-slate-800 font-sans relative">
-            <main
+            <PageTransition
                 key={currentView}
-                className="grid gap-8 p-8 max-w-[1600px] mx-auto animate-in fade-in duration-500 grid-cols-1">
+                className="grid gap-8 p-8 max-w-[1600px] mx-auto grid-cols-1">
                 <div className="min-h-[500px]">
                     {(currentView === "home") && <HomeView />}
                     {currentView === "tasks" && <TasksView />}
                     {currentView === "grades" && <GradesView />}
                 </div>
-            </main>
+            </PageTransition>
         </div>
     );
 }

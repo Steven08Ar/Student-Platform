@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { PageTransition } from "../../components/layout/PageTransition";
 
 export function MailPage() {
     const { userData } = useAuth();
@@ -73,7 +74,7 @@ export function MailPage() {
     };
 
     return (
-        <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
+        <PageTransition className="flex flex-col h-full bg-gray-50 overflow-hidden">
             {/* Custom Header Area - Replicating TopBar Options */}
             <header className="flex items-center justify-between p-4 bg-white border-b border-gray-100 h-20 shrink-0">
                 {/* Left: Title */}
@@ -208,7 +209,7 @@ export function MailPage() {
                                             {view === 'inbox' ? selectedMessage.senderName : `Para: ${selectedMessage.receiverName}`}
                                         </span>
                                         <span className="text-xs font-medium text-gray-500">
-                                            {view === 'inbox' ? 'remitente@schoolastica.com' : 'destinatario@schoolastica.com'} {/* Mock */}
+                                            {view === 'inbox' ? 'remitente@alpy.com' : 'destinatario@alpy.com'} {/* Mock */}
                                         </span>
                                     </div>
                                 </div>
@@ -251,6 +252,6 @@ export function MailPage() {
                     }
                 }}
             />
-        </div>
+        </PageTransition>
     );
 }
