@@ -30,7 +30,7 @@ const Sidebar = ({ isCollapsed }) => {
         { name: "Mensajes", path: "/mail", icon: Mail },
         { name: "Clases Virtuales", path: "#", icon: Video, isComingSoon: true },
         { name: "Examinations", path: "/?view=exams", icon: FileQuestion, view: 'exams' },
-        { name: "Settings", path: "/settings", icon: Settings },
+
     ] : [
         { name: "Dashboard", path: "/", icon: Home, view: null }, // Default view (no query param)
         { name: "Course Sessions", path: "/?view=courses", icon: BookOpen, view: 'courses' },
