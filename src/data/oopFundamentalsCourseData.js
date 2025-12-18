@@ -1540,7 +1540,7 @@ class TarjetaCredito(MetodoPago):
     
     def procesar_pago(self, monto):
         if self.validar():
-            return f"Pago de ${monto} procesado con tarjeta ****{self.numero[-4:]}"
+            return f"Pago de \${monto} procesado con tarjeta ****\{self.numero[-4:]}"
         return "Tarjeta inválida"
 
 class PayPal(MetodoPago):
@@ -1552,7 +1552,7 @@ class PayPal(MetodoPago):
     
     def procesar_pago(self, monto):
         if self.validar():
-            return f"Pago de ${monto} procesado vía PayPal ({self.email})"
+            return f"Pago de \${monto} procesado vía PayPal (\{self.email})"
         return "Email inválido"
 
 class Criptomoneda(MetodoPago):
@@ -1564,7 +1564,7 @@ class Criptomoneda(MetodoPago):
     
     def procesar_pago(self, monto):
         if self.validar():
-            return f"Pago de ${monto} procesado en cripto a {self.wallet[:10]}..."
+            return f"Pago de \${monto} procesado en cripto a \{self.wallet[:10]}..."
         return "Wallet inválida"
 
 # Procesador genérico (usa abstracción)
