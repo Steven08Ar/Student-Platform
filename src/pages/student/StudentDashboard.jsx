@@ -585,9 +585,20 @@ const StudentDashboard = () => {
                                         <td className="px-6 py-4 text-gray-500">{new Date(sub.gradedAt).toLocaleDateString()}</td>
                                         <td className="px-6 py-4 text-right font-bold text-lg">{sub.score}</td>
                                         <td className="px-6 py-4 text-center">
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                                Completado
-                                            </span>
+                                            {sub.status === 'reviewed' ? (
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                                                    onClick={() => navigate(`/exam/feedback/${sub.id}`)}
+                                                >
+                                                    Ver Retroalimentación
+                                                </Button>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                                    Pendiente
+                                                </span>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

@@ -10,6 +10,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { motion } from "framer-motion";
 
 const ClassLMSView = () => {
     const { classId } = useParams();
@@ -256,18 +257,74 @@ const ClassLMSView = () => {
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
-                                        h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mt-8 mb-4 text-gray-900" {...props} />,
-                                        h2: ({ node, ...props }) => <h2 className="text-xl font-bold mt-6 mb-3 text-gray-800 border-l-4 border-[#1A4D3E] pl-3" {...props} />,
-                                        h3: ({ node, ...props }) => <h3 className="text-lg font-bold mt-4 mb-2 text-gray-800" {...props} />,
-                                        ul: ({ node, ...props }) => <ul className="list-disc pl-5 mt-2 mb-4 space-y-1" {...props} />,
-                                        ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mt-2 mb-4 space-y-1" {...props} />,
-                                        li: ({ node, ...props }) => <li className="text-gray-700" {...props} />,
+                                        h1: ({ node, ...props }) => (
+                                            <motion.h1
+                                                initial={{ opacity: 0, y: -20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className="text-4xl font-extrabold mt-10 mb-6 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent"
+                                                {...props}
+                                            />
+                                        ),
+                                        h2: ({ node, ...props }) => (
+                                            <motion.div
+                                                initial={{ opacity: 0, x: -20 }}
+                                                whileInView={{ opacity: 1, x: 0 }}
+                                                viewport={{ once: true }}
+                                                className="flex items-center gap-3 mt-10 mb-4 pb-2 border-b border-gray-200"
+                                            >
+                                                <div className="h-8 w-1 bg-[#1A4D3E] rounded-full"></div>
+                                                <h2 className="text-2xl font-bold text-gray-800" {...props} />
+                                            </motion.div>
+                                        ),
+                                        h3: ({ node, ...props }) => (
+                                            <h3 className="text-xl font-bold mt-6 mb-3 text-[#1A4D3E]" {...props} />
+                                        ),
+                                        p: ({ node, ...props }) => (
+                                            <motion.p
+                                                initial={{ opacity: 0 }}
+                                                whileInView={{ opacity: 1 }}
+                                                viewport={{ once: true }}
+                                                className="text-lg text-gray-700 leading-relaxed mb-4"
+                                                {...props}
+                                            />
+                                        ),
+                                        ul: ({ node, ...props }) => <ul className="space-y-2 mt-4 mb-6" {...props} />,
+                                        ol: ({ node, ...props }) => <ol className="list-decimal pl-6 mt-4 mb-6 space-y-2" {...props} />,
+                                        li: ({ node, ...props }) => (
+                                            <motion.li
+                                                initial={{ opacity: 0, x: 10 }}
+                                                whileInView={{ opacity: 1, x: 0 }}
+                                                viewport={{ once: true }}
+                                                className="flex items-start gap-2"
+                                            >
+                                                <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[#1A4D3E] shrink-0" />
+                                                <span className="text-gray-700">{props.children}</span>
+                                            </motion.li>
+                                        ),
+                                        table: ({ node, ...props }) => (
+                                            <div className="overflow-x-auto my-8 rounded-xl border border-gray-200 shadow-sm">
+                                                <table className="w-full text-left border-collapse" {...props} />
+                                            </div>
+                                        ),
+                                        thead: ({ node, ...props }) => <thead className="bg-[#E8F5E9]" {...props} />,
+                                        th: ({ node, ...props }) => <th className="p-4 font-bold text-[#1A4D3E] border-b border-gray-200" {...props} />,
+                                        td: ({ node, ...props }) => <td className="p-4 border-b border-gray-100 text-gray-600" {...props} />,
                                         code: ({ node, inline, className, children, ...props }) => {
                                             const match = /language-(\w+)/.exec(className || '')
                                             return !inline && match ? (
-                                                <div className="rounded-lg overflow-hidden my-4 shadow-lg border border-gray-800">
-                                                    <div className="bg-[#1e1e1e] px-4 py-1.5 flex items-center justify-between border-b border-gray-700">
-                                                        <span className="text-xs text-gray-400 font-mono lower">{match[1]}</span>
+                                                <motion.div
+                                                    initial={{ opacity: 0, scale: 0.95 }}
+                                                    whileInView={{ opacity: 1, scale: 1 }}
+                                                    viewport={{ once: true }}
+                                                    className="rounded-xl overflow-hidden my-6 shadow-2xl border border-gray-800"
+                                                >
+                                                    <div className="bg-[#1e1e1e] px-4 py-2 flex items-center justify-between border-b border-gray-700">
+                                                        <div className="flex gap-1.5">
+                                                            <div className="w-3 h-3 rounded-full bg-red-500" />
+                                                            <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                                                            <div className="w-3 h-3 rounded-full bg-green-500" />
+                                                        </div>
+                                                        <span className="text-xs text-gray-400 font-mono font-bold uppercase tracking-wider">{match[1]}</span>
                                                     </div>
                                                     <SyntaxHighlighter
                                                         {...props}
@@ -275,16 +332,30 @@ const ClassLMSView = () => {
                                                         style={vscDarkPlus}
                                                         language={match[1]}
                                                         PreTag="div"
-                                                        customStyle={{ margin: 0, borderRadius: 0 }}
+                                                        customStyle={{ margin: 0, borderRadius: 0, padding: '1.5rem', fontSize: '14px' }}
                                                     />
-                                                </div>
+                                                </motion.div>
                                             ) : (
-                                                <code className="bg-gray-100 text-red-500 px-1 py-0.5 rounded font-mono text-sm border border-gray-200" {...props}>
+                                                <code className="bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded font-mono text-sm font-bold border border-orange-100" {...props}>
                                                     {children}
                                                 </code>
                                             )
                                         },
-                                        blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-gray-300 pl-4 italic text-gray-600 my-4 bg-gray-50 py-2 pr-2 rounded-r" {...props} />,
+                                        blockquote: ({ node, ...props }) => (
+                                            <motion.div
+                                                initial={{ opacity: 0, x: -20 }}
+                                                whileInView={{ opacity: 1, x: 0 }}
+                                                viewport={{ once: true }}
+                                                className="my-6 bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-xl shadow-sm relative overflow-hidden"
+                                            >
+                                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                                    <FileText className="h-16 w-16 text-blue-500" />
+                                                </div>
+                                                <div className="relative z-10 text-blue-900 font-medium italic">
+                                                    {props.children}
+                                                </div>
+                                            </motion.div>
+                                        ),
                                     }}
                                 >
                                     {activeLesson.content}

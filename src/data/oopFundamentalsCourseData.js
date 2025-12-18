@@ -10,27 +10,28 @@ export const oopFundamentalsCourseData = {
                 {
                     title: "¿Qué es la Programación Orientada a Objetos?",
                     content: `
-# Objetivos de Aprendizaje
+# 🎯 Objetivos de Aprendizaje
 - Comprender qué es la POO y su historia
 - Diferenciar entre paradigmas de programación
 - Entender por qué POO es importante en el desarrollo moderno
 
-## ¿Qué es POO?
+## 💡 ¿Qué es POO?
 
-La **Programación Orientada a Objetos** (POO u OOP por sus siglas en inglés) es un **paradigma de programación** que organiza el código alrededor de "objetos" en lugar de funciones y lógica. Un objeto es una entidad que combina:
+> La **Programación Orientada a Objetos** (POO u OOP por sus siglas en inglés) es un **paradigma de programación** que organiza el código alrededor de "objetos" en lugar de funciones y lógica.
 
+Un objeto es una entidad que combina:
 - **Datos** (atributos/propiedades)
 - **Comportamiento** (métodos/funciones)
 
-### Analogía del Mundo Real
+### 🚗 Analogía del Mundo Real
 
-Piensa en un **automóvil**:
-- **Atributos**: color, marca, modelo, velocidad actual
-- **Métodos**: acelerar(), frenar(), encender(), apagar()
+> Piensa en un **automóvil**:
+> - **Atributos**: color, marca, modelo, velocidad actual
+> - **Métodos**: acelerar(), frenar(), encender(), apagar()
 
 En POO, modelamos entidades del mundo real como objetos en código.
 
-## Historia de POO
+## 📜 Historia de POO
 
 | Año | Hito |
 |-----|------|
