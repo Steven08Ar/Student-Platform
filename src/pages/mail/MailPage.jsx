@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { db } from "../../services/firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 import { MailService } from "../../services/mailService";
 import { MessageList } from "./components/MessageList";
 import { ComposeModal } from "./components/ComposeModal";
@@ -16,10 +18,26 @@ export function MailPage() {
     const [selectedMessage, setSelectedMessage] = useState(null);
     const [isComposeOpen, setIsComposeOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [userAvatars, setUserAvatars] = useState({});
+
+    useEffect(() => {
+        // Subscribe to users collection to get real-time avatar updates
+        const unsubscribeUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+            const avatars = {};
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                avatars[doc.id] = data.avatarUrl;
+            });
+            setUserAvatars(avatars);
+        });
+
+        return () => unsubscribeUsers();
+    }, []);
 
     useEffect(() => {
         if (!user) return;
 
+        // ... (existing mail subscription logic)
         let unsubscribe;
         setLoading(true);
 
@@ -98,6 +116,7 @@ export function MailPage() {
                             type={view}
                             onSelectMessage={handleSelectMessage}
                             selectedMessageId={selectedMessage?.id}
+                            userAvatars={userAvatars}
                             emptyMessage={view === 'inbox' ? "No tienes mensajes nuevos" : "No has enviado mensajes"}
                         />
                     )}
@@ -119,8 +138,12 @@ export function MailPage() {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
-                                    {(view === 'inbox' ? selectedMessage.senderName : selectedMessage.receiverName)?.charAt(0).toUpperCase()}
+                                <div className="h-10 w-10 rounded-full overflow-hidden border bg-gray-100 shrink-0">
+                                    <img
+                                        src={(view === 'inbox' ? userAvatars[selectedMessage.senderId] : userAvatars[selectedMessage.receiverId]) || (view === 'inbox' ? selectedMessage.senderAvatar : selectedMessage.receiverAvatar) || `https://api.dicebear.com/9.x/avataaars/svg?seed=${view === 'inbox' ? selectedMessage.senderName : selectedMessage.receiverName}`}
+                                        alt="Avatar"
+                                        className="h-full w-full object-cover"
+                                    />
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="font-semibold text-sm">

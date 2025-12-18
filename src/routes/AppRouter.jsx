@@ -22,6 +22,7 @@ import TakeExam from "@/pages/student/TakeExam";
 import GradingView from "@/pages/teacher/GradingView";
 import { VirtualClassroom } from "@/pages/virtualClassroom/VirtualClassroom";
 import { MailPage } from "@/pages/mail/MailPage";
+import Settings from "@/pages/Settings";
 
 const AppRouter = () => {
     return (
@@ -39,6 +40,7 @@ const AppRouter = () => {
                             <Route path="/teacher/exams/:examId/edit" element={<ExamBuilder />} />
                             <Route path="/teacher/grading/:submissionId" element={<GradingView />} />
                             <Route path="/mail" element={<MailPage />} />
+                            <Route path="/settings" element={<Settings />} />
                         </Route>
 
                         {/* Full Screen Routes */}

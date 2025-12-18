@@ -50,7 +50,9 @@ export function ComposeModal({ isOpen, onClose, onMessageSent }) {
                 subject,
                 content,
                 userData.name || user.email,
-                recipient?.name || recipient?.email || "Unknown"
+                recipient?.name || recipient?.email || "Unknown",
+                userData.avatarUrl,
+                recipient?.avatarUrl
             );
             onMessageSent?.();
             onClose();
@@ -85,7 +87,14 @@ export function ComposeModal({ isOpen, onClose, onMessageSent }) {
                                 <SelectContent>
                                     {recipients.map((recipient) => (
                                         <SelectItem key={recipient.id} value={recipient.id}>
-                                            {recipient.name} ({recipient.email})
+                                            <div className="flex items-center gap-2">
+                                                <img
+                                                    src={recipient.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${recipient.name}`}
+                                                    alt={recipient.name}
+                                                    className="h-6 w-6 rounded-full object-cover border"
+                                                />
+                                                <span>{recipient.name} ({recipient.email})</span>
+                                            </div>
                                         </SelectItem>
                                     ))}
                                     {recipients.length === 0 && !loadingRecipients && (

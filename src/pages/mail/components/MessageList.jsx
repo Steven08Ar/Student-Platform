@@ -3,7 +3,7 @@ import { es } from "date-fns/locale";
 import { Mail, User, Clock, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function MessageList({ messages, type, onSelectMessage, selectedMessageId, emptyMessage }) {
+export function MessageList({ messages, type, onSelectMessage, selectedMessageId, emptyMessage, userAvatars }) {
     if (messages.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8">
@@ -19,6 +19,12 @@ export function MessageList({ messages, type, onSelectMessage, selectedMessageId
                 const isUnread = !message.read && type === 'inbox';
                 const isSelected = selectedMessageId === message.id;
 
+                // Determine which ID to look up (sender for inbox, receiver for sent)
+                const targetUserId = type === 'inbox' ? message.senderId : message.receiverId;
+                const currentAvatar = userAvatars?.[targetUserId];
+                const savedAvatar = type === 'inbox' ? message.senderAvatar : message.receiverAvatar;
+                const fallbackSeed = type === 'inbox' ? message.senderName : message.receiverName;
+
                 return (
                     <div
                         key={message.id}
@@ -30,8 +36,14 @@ export function MessageList({ messages, type, onSelectMessage, selectedMessageId
                         )}
                     >
                         <div className="flex justify-between items-start gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="h-8 w-8 rounded-full overflow-hidden border bg-gray-100 shrink-0">
+                                    <img
+                                        src={currentAvatar || savedAvatar || `https://api.dicebear.com/9.x/avataaars/svg?seed=${fallbackSeed}`}
+                                        alt="Avatar"
+                                        className="h-full w-full object-cover"
+                                    />
+                                </div>
                                 <span className={cn("text-sm truncate", isUnread ? "font-bold text-foreground" : "text-muted-foreground")}>
                                     {type === 'inbox' ? message.senderName : `Para: ${message.receiverName}`}
                                 </span>

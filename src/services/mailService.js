@@ -22,7 +22,7 @@ export const MailService = {
      * @param {string} senderName 
      * @param {string} receiverName 
      */
-    async sendMessage(senderId, receiverId, subject, content, senderName, receiverName) {
+    async sendMessage(senderId, receiverId, subject, content, senderName, receiverName, senderAvatar = null, receiverAvatar = null) {
         try {
             await addDoc(collection(db, "messages"), {
                 senderId,
@@ -31,6 +31,8 @@ export const MailService = {
                 content,
                 senderName,
                 receiverName,
+                senderAvatar,
+                receiverAvatar,
                 createdAt: serverTimestamp(),
                 read: false
             });

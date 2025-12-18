@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth, db } from "../services/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 
 const AuthContext = createContext();
 
@@ -70,13 +70,27 @@ export const AuthProvider = ({ children }) => {
         return signOut(auth);
     };
 
+    const updateProfileImage = async (url) => {
+        if (!user) return;
+
+        // Update Firestore
+        const userRef = doc(db, "users", user.uid);
+        await updateDoc(userRef, {
+            avatarUrl: url
+        });
+
+        // Update local state
+        setUserData(prev => ({ ...prev, avatarUrl: url }));
+    };
+
     const value = {
         user,
         userData,
         loading,
         login,
         register,
-        logout
+        logout,
+        updateProfileImage
     };
 
     return (
