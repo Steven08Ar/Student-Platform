@@ -76,7 +76,12 @@ export function MailPage() {
         <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
             {/* Custom Header Area - Replicating TopBar Options */}
             <header className="flex items-center justify-between p-4 bg-white border-b border-gray-100 h-20 shrink-0">
-                {/* Left: TopBar Options (Chat + Profile) */}
+                {/* Left: Title */}
+                <div className="flex items-center gap-4">
+                    <h1 className="text-xl font-bold text-gray-800 ml-2">Correos</h1>
+                </div>
+
+                {/* Right: TopBar Options (Chat + Profile) */}
                 <div className="flex items-center gap-4">
                     {/* Chat Button (Resets to Inbox) */}
                     <button
@@ -106,11 +111,6 @@ export function MailPage() {
                             <p className="text-[10px] text-gray-400 leading-none mt-1">Ver Perfil</p>
                         </div>
                     </div>
-                </div>
-
-                {/* Right: Empty */}
-                <div className="flex items-center gap-2">
-
                 </div>
             </header>
 
