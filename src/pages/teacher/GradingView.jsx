@@ -116,7 +116,7 @@ const GradingView = () => {
             <div className="space-y-6">
                 {exam.questions.map((q, idx) => {
                     const studentAns = submission.answers[q.id];
-                    const maxPoints = parseInt(q.points);
+                    const effectiveMaxPoints = parseInt(q.points) > 0 ? parseInt(q.points) : 10;
 
                     return (
                         <Card key={q.id} className="overflow-hidden">
@@ -141,19 +141,19 @@ const GradingView = () => {
                                     {/* Grading Section */}
                                     <div className="w-full md:w-80 bg-gray-50 border-l p-6 space-y-4">
                                         <div className="flex items-center justify-between">
-                                            <Label>Puntaje (Max {maxPoints})</Label>
+                                            <Label>Puntaje (Max {effectiveMaxPoints})</Label>
                                             <div className="flex items-center gap-2">
                                                 <Input
                                                     type="number"
                                                     className={`w-20 text-right font-bold transition-all duration-200 ${q.type !== 'multiple_choice'
-                                                            ? "bg-amber-50 border-amber-500 text-amber-700 focus-visible:ring-amber-500"
-                                                            : (manualScores[q.id] || 0) === maxPoints
-                                                                ? "bg-emerald-50 border-emerald-500 text-emerald-700 focus-visible:ring-emerald-500"
-                                                                : "bg-red-50 border-red-200 text-red-700 focus-visible:ring-red-500"
+                                                        ? "bg-amber-50 border-amber-500 text-amber-700 focus-visible:ring-amber-500"
+                                                        : (manualScores[q.id] || 0) === effectiveMaxPoints
+                                                            ? "bg-emerald-50 border-emerald-500 text-emerald-700 focus-visible:ring-emerald-500"
+                                                            : "bg-red-50 border-red-200 text-red-700 focus-visible:ring-red-500"
                                                         }`}
                                                     value={manualScores[q.id] ?? 0}
                                                     onChange={e => setManualScores({ ...manualScores, [q.id]: parseInt(e.target.value) || 0 })}
-                                                    max={maxPoints}
+                                                    max={effectiveMaxPoints}
                                                 />
                                             </div>
                                         </div>
@@ -167,9 +167,10 @@ const GradingView = () => {
                                                     variant="outline"
                                                     className="flex-1 border-emerald-200 hover:bg-emerald-50 text-emerald-700"
                                                     onClick={() => {
-                                                        console.log(`Click Correcto: qId=${q.id}, max=${maxPoints}`);
+                                                        const points = effectiveMaxPoints;
+                                                        console.log(`Click Correcto: qId=${q.id}, max=${points}`);
                                                         setManualScores((prev) => {
-                                                            const next = { ...prev, [q.id]: maxPoints };
+                                                            const next = { ...prev, [q.id]: points };
                                                             console.log("New Scores:", next);
                                                             return next;
                                                         });
