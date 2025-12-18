@@ -210,7 +210,7 @@ const TeacherDashboard = () => {
                                 <p className="text-xs text-red-400 mb-2 font-bold uppercase tracking-wider">Developer Tools</p>
                                 <Button
                                     variant="outline"
-                                    className="w-full border-dashed border-red-300 text-red-500 hover:bg-red-100"
+                                    className="w-full border-dashed border-red-300 text-red-500 hover:bg-red-100 mb-2"
                                     onClick={async () => {
                                         if (confirm("Generate 'Python OOP' Course?")) {
                                             const { seedPythonCourse } = await import("@/services/seeder");
@@ -219,11 +219,28 @@ const TeacherDashboard = () => {
                                             await loadData();
                                             setLoading(false);
                                             setShowSettings(false);
-                                            alert("Course Generated!");
+                                            alert("Python Course Generated!");
                                         }
                                     }}
                                 >
                                     <FileQuestion className="mr-2 h-4 w-4" /> Seed Python Content
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="w-full border-dashed border-purple-300 text-purple-500 hover:bg-purple-100"
+                                    onClick={async () => {
+                                        if (confirm("Generate 'Fundamentos de POO' Course?")) {
+                                            const { seedOOPCourse } = await import("@/services/seeder");
+                                            setLoading(true);
+                                            await seedOOPCourse(user.uid);
+                                            await loadData();
+                                            setLoading(false);
+                                            setShowSettings(false);
+                                            alert("OOP Fundamentals Course Generated!");
+                                        }
+                                    }}
+                                >
+                                    <FileQuestion className="mr-2 h-4 w-4" /> Seed OOP Fundamentals
                                 </Button>
                             </div>
                         </CardFooter>
