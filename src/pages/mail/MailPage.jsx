@@ -6,13 +6,15 @@ import { MailService } from "../../services/mailService";
 import { MessageList } from "./components/MessageList";
 import { ComposeModal } from "./components/ComposeModal";
 import { Button } from "@/components/ui/button";
-import { Mail, Send, Plus, Inbox, MessageSquare, Search } from "lucide-react"; // Added MessageSquare
+import { Mail, Send, Plus, Inbox, MessageSquare, Search, Bell } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 export function MailPage() {
     const { userData } = useAuth();
+    const navigate = useNavigate();
     const [view, setView] = useState('inbox'); // 'inbox' | 'sent'
     const [messages, setMessages] = useState([]);
     const [selectedMessage, setSelectedMessage] = useState(null);
@@ -72,39 +74,43 @@ export function MailPage() {
 
     return (
         <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
-            {/* Custom Header Area */}
+            {/* Custom Header Area - Replicating TopBar Options */}
             <header className="flex items-center justify-between p-4 bg-white border-b border-gray-100 h-20 shrink-0">
-                {/* Left: Chat Icon + Title + User Pill */}
-                <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-4">
-                        <div className="bg-white border-2 border-gray-100 rounded-xl p-3 shadow-sm text-gray-700">
-                            <MessageSquare className="h-6 w-6" />
-                        </div>
-                        <div className="hidden md:block">
-                            <h1 className="text-xl font-bold text-gray-800">Mensajes</h1>
-                            <p className="text-xs text-gray-400">Bandeja de entrada & comunicaciones</p>
-                        </div>
-                    </div>
+                {/* Left: TopBar Options (Chat + Profile) */}
+                <div className="flex items-center gap-4">
+                    {/* Chat Button (Resets to Inbox) */}
+                    <button
+                        onClick={() => setView('inbox')}
+                        className="h-10 w-10 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:text-[#1A4D3E] shadow-sm transition-colors hover:bg-gray-50"
+                        title="Bandeja de Entrada"
+                    >
+                        <MessageSquare className="h-5 w-5" />
+                    </button>
 
-                    {/* User Pill (Now on Left) */}
-                    <div className="flex items-center bg-gray-50 rounded-full pl-1 pr-4 py-1 border border-gray-100 gap-3">
-                        <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-200">
+                    {/* Profile Pill (Navigates to Settings) */}
+                    <div
+                        onClick={() => navigate('/settings')}
+                        className="flex items-center gap-3 bg-white pl-1 pr-4 py-1 rounded-full shadow-sm cursor-pointer hover:shadow-md transition-shadow select-none border border-gray-100"
+                        role="button"
+                        tabIndex={0}
+                    >
+                        <div className="h-9 w-9 rounded-full bg-[#1A4D3E]/10 overflow-hidden border border-[#1A4D3E]/20">
                             <img
-                                src={userData?.avatarUrl || `https://api.dicebear.com/9.x/avataaars/svg?seed=${userData?.name || userData?.email}`}
-                                alt="User"
+                                src={userData?.avatarUrl || `https://api.dicebear.com/9.x/avataaars/svg?seed=${userData?.name || 'User'}`}
+                                alt="profile"
                                 className="h-full w-full object-cover"
                             />
                         </div>
-                        <div className="text-left hidden sm:block">
-                            <p className="text-sm font-bold text-gray-800 leading-none">{userData?.name || "Usuario"}</p>
-                            <p className="text-[10px] text-gray-400 leading-none mt-1">En línea</p>
+                        <div className="hidden md:block text-left">
+                            <p className="text-sm font-bold text-gray-800 leading-none">{userData?.name || "User"}</p>
+                            <p className="text-[10px] text-gray-400 leading-none mt-1">Ver Perfil</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Right: Empty for now (Search moved here?) or actions */}
+                {/* Right: Empty */}
                 <div className="flex items-center gap-2">
-                    {/* Optional Right Action */}
+
                 </div>
             </header>
 
