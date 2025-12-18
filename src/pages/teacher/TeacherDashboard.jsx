@@ -13,6 +13,7 @@ import TeacherStats from "./components/TeacherStats";
 import TeacherInbox from "./components/TeacherInbox";
 import TeacherStudents from "./components/TeacherStudents";
 import CalendarView from "./components/CalendarView";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TeacherDashboard = () => {
     const { user, userData } = useAuth();
@@ -49,6 +50,8 @@ const TeacherDashboard = () => {
     const [selectedClassFilter, setSelectedClassFilter] = useState("all");
     const [selectedStatusFilter, setSelectedStatusFilter] = useState("pending");
 
+
+
     useEffect(() => {
         loadData();
     }, [user]);
@@ -56,6 +59,7 @@ const TeacherDashboard = () => {
     const loadData = async () => {
         if (!user) return;
         try {
+            // ... (keep existing data loading logic) ...
             const data = await getClassesByTeacher(user.uid);
             setClasses(data);
             const examData = await getExamsByTeacher(user.uid);
@@ -101,6 +105,47 @@ const TeacherDashboard = () => {
             setLoading(false);
         }
     };
+
+    if (loading) {
+        return (
+            <div className="flex bg-gray-50 min-h-screen font-sans">
+                {/* Skeleton Sidebar - mimicking Layout logic if visible here, but this is the dashboard component */}
+                <div className="flex-1 p-8 space-y-8">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <Skeleton className="h-8 w-64 mb-2 bg-gray-200" />
+                            <Skeleton className="h-4 w-48 bg-gray-100" />
+                        </div>
+                        <div className="flex gap-4">
+                            <Skeleton className="h-10 w-32 bg-gray-200" />
+                            <Skeleton className="h-10 w-32 bg-gray-200" />
+                        </div>
+                    </div>
+
+                    {/* Stats Grid Skeleton */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        {[1, 2, 3].map((i) => (
+                            <Skeleton key={i} className="h-32 rounded-xl bg-white shadow-sm border border-gray-100" />
+                        ))}
+                    </div>
+
+                    {/* Content Skeleton */}
+                    <div className="space-y-6">
+                        <div className="flex gap-4">
+                            <Skeleton className="h-10 w-32 bg-white" />
+                            <Skeleton className="h-10 w-32 bg-white" />
+                            <Skeleton className="h-10 w-32 bg-white" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                <Skeleton key={i} className="h-64 rounded-xl bg-white border border-gray-100" />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     const handleCreateClass = async (e) => {
         e.preventDefault();

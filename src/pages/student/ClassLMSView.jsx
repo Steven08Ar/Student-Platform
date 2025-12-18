@@ -11,6 +11,7 @@ import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ClassLMSView = () => {
     const { classId } = useParams();
@@ -115,7 +116,35 @@ const ClassLMSView = () => {
         return total === 0 ? 0 : Math.round((completed / total) * 100);
     }
 
-    if (loading) return <div className="flex h-screen items-center justify-center bg-gray-50"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>;
+    if (loading) {
+        return (
+            <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">
+                {/* Skeleton Sidebar */}
+                <aside className="w-80 bg-white border-r border-gray-200 flex flex-col h-full shrink-0 p-4">
+                    <div className="space-y-4 border-b border-gray-100 pb-4 mb-4">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-6 w-48" />
+                        <Skeleton className="h-2 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <Skeleton key={i} className="h-10 w-full" />
+                        ))}
+                    </div>
+                </aside>
+                {/* Skeleton Main Content */}
+                <div className="flex-1 p-8 md:p-12 space-y-8 overflow-y-auto">
+                    <Skeleton className="w-full aspect-video rounded-xl bg-gray-200" />
+                    <div className="space-y-4">
+                        <Skeleton className="h-8 w-3/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-2/3" />
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">

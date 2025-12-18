@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Save, ArrowLeft, Check, X } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Helper since I didn't add getSubmissionById to service yet, or I can just use getDoc here for speed
 const getSubmissionById = async (id) => {
@@ -95,7 +96,38 @@ const GradingView = () => {
         navigate(-1); // Go back
     }
 
-    if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>;
+
+
+    if (loading) {
+        return (
+            <div className="max-w-5xl mx-auto p-8 space-y-8">
+                {/* Header Skeleton */}
+                <div className="flex items-center gap-4 border-b pb-6">
+                    <Skeleton className="h-4 w-12" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-64" />
+                        <Skeleton className="h-4 w-48" />
+                    </div>
+                </div>
+
+                {/* Question Cards Skeleton */}
+                <div className="space-y-6">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col md:flex-row gap-6">
+                            <div className="flex-1 space-y-4">
+                                <Skeleton className="h-6 w-3/4" />
+                                <Skeleton className="h-16 w-full rounded-lg bg-gray-50" />
+                            </div>
+                            <div className="w-full md:w-80 space-y-4 border-l pl-6">
+                                <Skeleton className="h-10 w-full" />
+                                <Skeleton className="h-20 w-full" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="max-w-5xl mx-auto p-8 space-y-8">

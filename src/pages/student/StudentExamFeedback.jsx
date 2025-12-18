@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Loader2, ArrowLeft, CheckCircle2, XCircle, MessageSquare } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 
 const getSubmissionById = async (id) => {
@@ -47,7 +48,37 @@ const StudentExamFeedback = () => {
         }
     }
 
-    if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-emerald-600" /></div>;
+
+
+    if (loading) {
+        return (
+            <div className="max-w-5xl mx-auto p-8 space-y-8">
+                {/* Header Skeleton */}
+                <div className="flex flex-col md:flex-row md:items-center gap-4 border-b pb-6">
+                    <Skeleton className="h-10 w-24" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-64" />
+                        <Skeleton className="h-4 w-48" />
+                    </div>
+                </div>
+
+                {/* Questions Skeleton */}
+                <div className="space-y-6">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+                            <div className="space-y-4">
+                                <div className="flex justify-between">
+                                    <Skeleton className="h-6 w-1/2" />
+                                    <Skeleton className="h-6 w-24 rounded-full" />
+                                </div>
+                                <Skeleton className="h-16 w-full rounded-lg bg-gray-50" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
+    }
 
     if (!submission || !exam) return <div className="p-8 text-center">No se encontró la evaluación.</div>;
 
@@ -101,7 +132,7 @@ const StudentExamFeedback = () => {
                                                 {q.text || q.question}
                                             </h3>
                                             <span className={`px-3 py-1 rounded-full text-xs font-bold ml-4 whitespace-nowrap ${isFullScore ? 'bg-emerald-100 text-emerald-700' :
-                                                    isZero ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                                                isZero ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
                                                 }`}>
                                                 {score} / {maxPoints} pts
                                             </span>

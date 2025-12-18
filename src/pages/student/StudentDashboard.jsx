@@ -6,6 +6,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const StudentDashboard = () => {
     const { userData } = useAuth();
@@ -120,7 +121,35 @@ const StudentDashboard = () => {
         return colors[index % colors.length];
     }
 
-    if (loading) return <div className="flex h-screen items-center justify-center bg-gray-50"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>;
+
+
+    if (loading) {
+        return (
+            <div className="flex font-sans bg-gray-50 h-screen overflow-hidden">
+                {/* Skeleton Sidebar - just a box for now or assume sidebar is static */}
+                <div className="hidden md:flex flex-col w-64 bg-white border-r h-full p-4 space-y-4">
+                    <Skeleton className="h-8 w-32" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                </div>
+
+                <div className="flex-1 p-8 space-y-8 overflow-y-auto">
+                    {/* Header Skeleton */}
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-48 bg-gray-200" />
+                        <Skeleton className="h-4 w-64 bg-gray-100" />
+                    </div>
+
+                    {/* Grid Skeleton */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[1, 2, 3].map((i) => (
+                            <Skeleton key={i} className="h-64 rounded-xl bg-white border border-gray-100" />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     const relatedClasses = classes.filter(c => c.id !== selectedClass?.id);
 
