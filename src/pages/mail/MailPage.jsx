@@ -12,7 +12,7 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 export function MailPage() {
-    const { user } = useAuth();
+    const { userData } = useAuth();
     const [view, setView] = useState('inbox'); // 'inbox' | 'sent'
     const [messages, setMessages] = useState([]);
     const [selectedMessage, setSelectedMessage] = useState(null);
@@ -39,7 +39,7 @@ export function MailPage() {
     }, []);
 
     useEffect(() => {
-        if (!user) return;
+        if (!userData) return;
 
         // ... (existing mail subscription logic)
         let unsubscribe;
@@ -49,19 +49,19 @@ export function MailPage() {
         setSelectedMessage(null);
 
         if (view === 'inbox') {
-            unsubscribe = MailService.subscribeToInbox(user.uid, (data) => {
+            unsubscribe = MailService.subscribeToInbox(userData.uid, (data) => {
                 setMessages(data);
                 setLoading(false);
             });
         } else {
-            unsubscribe = MailService.subscribeToSent(user.uid, (data) => {
+            unsubscribe = MailService.subscribeToSent(userData.uid, (data) => {
                 setMessages(data);
                 setLoading(false);
             });
         }
 
         return () => unsubscribe && unsubscribe();
-    }, [user, view]);
+    }, [userData, view]);
 
     const handleSelectMessage = async (message) => {
         setSelectedMessage(message);
@@ -74,30 +74,37 @@ export function MailPage() {
         <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
             {/* Custom Header Area */}
             <header className="flex items-center justify-between p-4 bg-white border-b border-gray-100 h-20 shrink-0">
-                {/* Left: Chat Icon */}
-                <div className="flex items-center gap-4">
-                    <div className="bg-white border-2 border-gray-100 rounded-xl p-3 shadow-sm text-gray-700">
-                        <MessageSquare className="h-6 w-6" />
+                {/* Left: Chat Icon + Title + User Pill */}
+                <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-white border-2 border-gray-100 rounded-xl p-3 shadow-sm text-gray-700">
+                            <MessageSquare className="h-6 w-6" />
+                        </div>
+                        <div className="hidden md:block">
+                            <h1 className="text-xl font-bold text-gray-800">Mensajes</h1>
+                            <p className="text-xs text-gray-400">Bandeja de entrada & comunicaciones</p>
+                        </div>
                     </div>
-                    <div className="hidden md:block">
-                        <h1 className="text-xl font-bold text-gray-800">Mensajes</h1>
-                        <p className="text-xs text-gray-400">Bandeja de entrada & comunicaciones</p>
+
+                    {/* User Pill (Now on Left) */}
+                    <div className="flex items-center bg-gray-50 rounded-full pl-1 pr-4 py-1 border border-gray-100 gap-3">
+                        <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-200">
+                            <img
+                                src={userData?.avatarUrl || `https://api.dicebear.com/9.x/avataaars/svg?seed=${userData?.name || userData?.email}`}
+                                alt="User"
+                                className="h-full w-full object-cover"
+                            />
+                        </div>
+                        <div className="text-left hidden sm:block">
+                            <p className="text-sm font-bold text-gray-800 leading-none">{userData?.name || "Usuario"}</p>
+                            <p className="text-[10px] text-gray-400 leading-none mt-1">En línea</p>
+                        </div>
                     </div>
                 </div>
 
-                {/* Right: User Pill */}
-                <div className="flex items-center bg-gray-50 rounded-full pl-1 pr-4 py-1 border border-gray-100 gap-3">
-                    <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-200">
-                        <img
-                            src={user?.photoURL || `https://api.dicebear.com/9.x/avataaars/svg?seed=${user?.displayName || user?.email}`}
-                            alt="User"
-                            className="h-full w-full object-cover"
-                        />
-                    </div>
-                    <div className="text-right hidden sm:block">
-                        <p className="text-sm font-bold text-gray-800 leading-none">{user?.displayName || "Usuario"}</p>
-                        <p className="text-[10px] text-gray-400 leading-none mt-1">En línea</p>
-                    </div>
+                {/* Right: Empty for now (Search moved here?) or actions */}
+                <div className="flex items-center gap-2">
+                    {/* Optional Right Action */}
                 </div>
             </header>
 
