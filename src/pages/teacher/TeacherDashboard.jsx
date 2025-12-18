@@ -45,6 +45,10 @@ const TeacherDashboard = () => {
     const [purgePassword, setPurgePassword] = useState("");
     const [isPurging, setIsPurging] = useState(false);
 
+    // Grades Filter State
+    const [selectedClassFilter, setSelectedClassFilter] = useState("all");
+    const [selectedStatusFilter, setSelectedStatusFilter] = useState("pending");
+
     useEffect(() => {
         loadData();
     }, [user]);
@@ -355,52 +359,104 @@ const TeacherDashboard = () => {
             )}
 
             {/* GRADES VIEW */}
+            {/* GRADES VIEW */}
             {currentView === 'grades' && (
                 <div className="space-y-6 animate-in fade-in duration-300">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-xl shadow-sm">
+                        <div>
+                            <h1 className="text-xl font-bold text-[#1A4D3E]">Calificaciones</h1>
+                            <p className="text-gray-500 text-sm">Gestiona y califica las entregas de tus estudiantes.</p>
+                        </div>
+
+                        {/* Filters */}
+                        <div className="flex flex-wrap gap-3 w-full md:w-auto">
+                            <select
+                                className="px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:ring-2 focus:ring-[#1A4D3E] focus:outline-none"
+                                value={selectedClassFilter}
+                                onChange={(e) => setSelectedClassFilter(e.target.value)}
+                            >
+                                <option value="all">Todas las Clases</option>
+                                {classes.map(c => <option key={c.id} value={c.title}>{c.title}</option>)}
+                            </select>
+
+                            <select
+                                className="px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:ring-2 focus:ring-[#1A4D3E] focus:outline-none"
+                                value={selectedStatusFilter}
+                                onChange={(e) => setSelectedStatusFilter(e.target.value)}
+                            >
+                                <option value="all">Todos los Estados</option>
+                                <option value="pending">Pendientes de Calificar</option>
+                                <option value="reviewed">Calificados</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <Card className="border-none shadow-sm rounded-xl overflow-hidden">
-                        <CardHeader className="bg-white border-b border-gray-100">
-                            <CardTitle className="text-[#1A4D3E]">Student Submissions</CardTitle>
-                            <CardDescription>Review and grade submissions.</CardDescription>
-                        </CardHeader>
                         <div className="overflow-x-auto bg-white">
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-gray-50/50 text-gray-500">
                                     <tr>
-                                        <th className="px-6 py-4 font-bold">Student</th>
-                                        <th className="px-6 py-4 font-bold">Exam / Class</th>
-                                        <th className="px-6 py-4 font-bold">Status</th>
-                                        <th className="px-6 py-4 font-bold text-right">Score</th>
-                                        <th className="px-6 py-4 font-bold text-center">Action</th>
+                                        <th className="px-6 py-4 font-bold">Estudiante</th>
+                                        <th className="px-6 py-4 font-bold">Actividad / Clase</th>
+                                        <th className="px-6 py-4 font-bold">Estado</th>
+                                        <th className="px-6 py-4 font-bold text-right">Nota</th>
+                                        <th className="px-6 py-4 font-bold text-center">Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {submissions.length === 0 ? (
-                                        <tr><td colSpan="5" className="p-8 text-center text-gray-500">No submissions found.</td></tr>
+                                    {submissions
+                                        .filter(s => selectedClassFilter === 'all' || s.classTitle === selectedClassFilter)
+                                        .filter(s => {
+                                            if (selectedStatusFilter === 'all') return true;
+                                            if (selectedStatusFilter === 'pending') return s.status !== 'reviewed';
+                                            if (selectedStatusFilter === 'reviewed') return s.status === 'reviewed';
+                                            return true;
+                                        })
+                                        .length === 0 ? (
+                                        <tr><td colSpan="5" className="p-12 text-center text-gray-500 flex flex-col items-center justify-center gap-2">
+                                            <ClipboardList className="h-10 w-10 text-gray-300" />
+                                            <span>No se encontraron entregas con los filtros seleccionados.</span>
+                                        </td></tr>
                                     ) : (
-                                        submissions.map(sub => (
-                                            <tr key={sub.id} className="hover:bg-gray-50/30 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="font-medium text-[#0F2922]">{sub.studentName || "Student"}</div>
-                                                    <div className="text-xs text-gray-400">{sub.studentEmail}</div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-[#1A4D3E] text-xs font-bold uppercase tracking-wider bg-[#E8F5E9] inline-block px-2 py-1 rounded">{sub.classTitle || "Class"}</div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    {sub.status === 'reviewed' ? (
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E8F5E9] text-[#1B5E20]">Graded</span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600 animate-pulse">Pending</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 text-right font-bold font-mono">{sub.score}</td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <Button size="sm" variant="outline" className="rounded-full px-4 border-gray-200 text-[#1A4D3E] hover:bg-[#E8F5E9]" onClick={() => navigate(`/teacher/grading/${sub.id}`)}>
-                                                        {sub.status === 'reviewed' ? 'Edit' : 'Grade'}
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        ))
+                                        submissions
+                                            .filter(s => selectedClassFilter === 'all' || s.classTitle === selectedClassFilter)
+                                            .filter(s => {
+                                                if (selectedStatusFilter === 'all') return true;
+                                                if (selectedStatusFilter === 'pending') return s.status !== 'reviewed';
+                                                if (selectedStatusFilter === 'reviewed') return s.status === 'reviewed';
+                                                return true;
+                                            })
+                                            .map(sub => (
+                                                <tr key={sub.id} className="hover:bg-gray-50/30 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="font-medium text-[#0F2922]">{sub.studentName || "Estudiante"}</div>
+                                                        <div className="text-xs text-gray-400">{sub.studentEmail}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="font-medium text-gray-700">{sub.assignmentTitle || "Tarea"}</div>
+                                                        <div className="text-[#1A4D3E] text-xs font-bold uppercase tracking-wider bg-[#E8F5E9] inline-block px-2 py-1 rounded mt-1">{sub.classTitle || "Clase"}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        {sub.status === 'reviewed' ? (
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E8F5E9] text-[#1B5E20]">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-[#1B5E20]"></div> Calificado
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600 animate-pulse">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div> Pendiente
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right font-bold font-mono text-lg">
+                                                        {sub.score ? <span className="text-[#1A4D3E]">{sub.score}</span> : <span className="text-gray-300">-</span>}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <Button size="sm" variant={sub.status === 'reviewed' ? "outline" : "default"} className={`rounded-full px-6 transition-all ${sub.status === 'reviewed' ? 'border-gray-200 text-gray-500 hover:text-[#1A4D3E]' : 'bg-[#1A4D3E] hover:bg-[#143D31] text-white shadow-lg shadow-[#1A4D3E]/20'}`} onClick={() => navigate(`/teacher/grading/${sub.id}`)}>
+                                                            {sub.status === 'reviewed' ? 'Editar' : 'Calificar'}
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))
                                     )}
                                 </tbody>
                             </table>

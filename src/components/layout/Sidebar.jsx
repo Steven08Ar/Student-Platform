@@ -27,6 +27,7 @@ const Sidebar = ({ isCollapsed }) => {
         { name: "Teachers", path: "/?view=teachers", icon: Users, view: 'teachers' }, // Mock view
         { name: "Students", path: "/?view=students", icon: GraduationCap, view: 'students' },
         { name: "Classes", path: "/?view=courses", icon: BookOpen, view: 'courses' },
+        { name: "Calificaciones", path: "/?view=grades", icon: ClipboardList, view: 'grades' },
         { name: "Mensajes", path: "/mail", icon: Mail },
         { name: "Clases Virtuales", path: "#", icon: Video, isComingSoon: true },
         { name: "Examinations", path: "/?view=exams", icon: FileQuestion, view: 'exams' },
