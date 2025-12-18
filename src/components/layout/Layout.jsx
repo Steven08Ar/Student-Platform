@@ -29,15 +29,15 @@ const Layout = () => {
 
             {/* Main Content Column */}
             <div className="flex flex-col h-screen overflow-hidden bg-[#F2F6F5]"> {/* Pale Mint-Grey Background */}
-                {/* TopBar - Hidden on Settings page */}
-                {location.pathname !== '/settings' && <TopBar />}
+                {/* TopBar - Hidden on Settings and Mail page */}
+                {!['/settings', '/mail'].includes(location.pathname) && <TopBar />}
 
                 {/* Mobile Header */}
                 <header className="flex h-14 items-center gap-4 border-b bg-white px-6 lg:hidden">
                     <span className="font-bold text-[#1A4D3E]">Schoolastica.</span>
                 </header>
 
-                <main className="flex-1 overflow-y-auto p-6 md:p-8">
+                <main className={cn("flex-1 overflow-y-auto", location.pathname === '/mail' ? "p-0" : "p-6 md:p-8")}>
                     <Outlet />
                 </main>
             </div>
